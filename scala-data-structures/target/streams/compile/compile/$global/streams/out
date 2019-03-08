@@ -1,0 +1,6 @@
+[0m[[0m[31merror[0m] [0m[0m/home/bertrand/Code/Data-Structures-Scala/scala-data-structures/src/main/scala/data_structures/BloomFilter.scala:51:61: type mismatch;[0m
+[0m[[0m[31merror[0m] [0m[0m found   : Array[String => Int][0m
+[0m[[0m[31merror[0m] [0m[0m required: List[String => Int][0m
+[0m[[0m[31merror[0m] [0m[0m    BloomFilter(nbOfItems, falsePositiveProbability, array, hashFunctions)[0m
+[0m[[0m[31merror[0m] [0m[0m                                                            ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
