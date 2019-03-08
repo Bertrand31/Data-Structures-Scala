@@ -5,7 +5,7 @@ import scala.util.Random
 
 case class BloomFilter[A](
   nbOfItems: Int,
-  falsePositiveProbability: Double,
+  falsePositiveProbability: Float,
   private val array: Array[Boolean],
   private val hashFunctions: List[String => Int]
 ) {
@@ -27,11 +27,23 @@ case class BloomFilter[A](
 
 object BloomFilter {
 
-  def apply[A](nbOfItems: Int, falsePositiveProbability: Double): BloomFilter[A] = {
-    val arraySize = Math.ceil(Math.abs(nbOfItems * Math.log(falsePositiveProbability)) / Math.log(1 / Math.pow(Math.log(2), 2))).toInt
+  import Math.{abs, ceil, log, pow, round}
+
+  private def getArraySize(nbOfItems: Int, falsePositiveProbability: Float): Int =
+    ceil(
+      abs(nbOfItems * log(falsePositiveProbability)) / log(1 / pow(log(2), 2))
+    ).toInt
+
+  private def getHashFunctionsNumber(nbOfItems: Int, arraySize: Int): Int =
+    round(
+      (arraySize / nbOfItems) * log(2)
+    ).toInt
+
+  def apply[A](nbOfItems: Int, falsePositiveProbability: Float): BloomFilter[A] = {
+    val arraySize = getArraySize(nbOfItems, falsePositiveProbability)
     val array = Array.ofDim[Boolean](arraySize)
 
-    val nbOfHashFunctions = Math.round((arraySize / nbOfItems) * Math.log(2)).toInt
+    val nbOfHashFunctions = getHashFunctionsNumber(nbOfItems, arraySize)
     val hashFunctions: List[String => Int] =
       (1 to nbOfHashFunctions).toList.map(_ => {
         val seed = Random.nextInt
@@ -44,7 +56,7 @@ object BloomFilter {
 object BloomFilterTest {
 
   def main(args: Array[String]): Unit = {
-    val empty = BloomFilter[Int](4000, 0.0000001d)
+    val empty = BloomFilter[Int](4000, 0.0000001f)
     val withOne = empty += 4
     val withThree = withOne ++= Vector(5, 2910)
     println(withThree contains 4)
