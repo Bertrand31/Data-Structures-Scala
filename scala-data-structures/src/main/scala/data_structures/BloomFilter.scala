@@ -11,14 +11,14 @@ case class BloomFilter[A](
   private val hashSeed: Int
 ) {
 
-  private def getHashFunctions(): Array[String => Int] =
+  private val hashFunctions: Stream[String => Int] =
     (1 to numberOfHashFunctions)
-      .toArray
+      .toStream
       .map(i => (str: String) => abs(stringHash(str, hashSeed + i)) % array.length)
 
   def +=(item: A): BloomFilter[A] = {
     val itemString = item.toString
-    val hashes = getHashFunctions().map(_(itemString))
+    val hashes = hashFunctions.map(_(itemString))
     val updatedArray = hashes.foldLeft(array)((acc, hash) => acc.updated(hash, true))
     this.copy(array=updatedArray)
   }
@@ -27,7 +27,7 @@ case class BloomFilter[A](
 
   def mayContain(item: A): Boolean = {
     val itemString = item.toString
-    getHashFunctions().forall(fn => array(fn(itemString)))
+    hashFunctions.forall(fn => array(fn(itemString)))
   }
 
   def approxNumberOfItems(): Int = {
@@ -48,7 +48,7 @@ object BloomFilter {
 
   private def getNumberOfHashFunctions(nbOfItems: Int, arraySize: Int): Int =
     round(
-      (arraySize / nbOfItems) * log(2)
+      (arraySize.toDouble / nbOfItems.toDouble) * log(2)
     ).toInt
 
   def apply[A](nbOfItems: Int, falsePositiveProbability: Float): BloomFilter[A] = {
