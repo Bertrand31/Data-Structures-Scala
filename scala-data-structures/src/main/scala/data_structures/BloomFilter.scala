@@ -74,5 +74,17 @@ object BloomFilterTest {
     println(withThree mayContain 2910)
     println(withThree mayContain 211)
     println(withThree.approxNumberOfItems)
+    val t0 = System.nanoTime()
+    (0 to 100000000).foreach(i => {
+      empty += i
+    })
+    val t1 = System.nanoTime()
+    println("Elapsed time: " + (t1 - t0) + "ns")
+    val t2 = System.nanoTime()
+    (0 to 100000000).foreach(i => {
+      empty mayContain i
+    })
+    val t3 = System.nanoTime()
+    println("Elapsed time: " + (t3 - t2) + "ns")
   }
 }
