@@ -5,7 +5,7 @@ final case class Trie(
   private val isFinal: Boolean
 ) {
 
-  private def getIndexes: String => Seq[Int] =
+  private def getIndexesFromString: String => Seq[Int] =
     _
       .toCharArray
       .map(_.toLower.charValue - 97) // 'a' is 97, 'b' is 98, etc
@@ -34,7 +34,7 @@ final case class Trie(
       }
     }
 
-    insertIndexes(getIndexes(word), this)
+    insertIndexes(getIndexesFromString(word), this)
   }
 
   def ++=(words: Seq[String]): Trie = words.foldLeft(this)((acc, word) => acc += word)
@@ -48,13 +48,13 @@ final case class Trie(
         case head +: tail => trie.children(head).map(endsOnLastIndex(tail, _)).getOrElse(false)
       }
 
-    endsOnLastIndex(getIndexes(word), this)
+    endsOnLastIndex(getIndexesFromString(word), this)
   }
 
   def keys(): List[String] = {
 
-    def descendCharByChar(accumulator: Vector[Int], trie: Trie): List[Vector[Int]] = {
-      (0 to 25).flatMap(index => {
+    def descendCharByChar(accumulator: Vector[Int], trie: Trie): List[Vector[Int]] =
+      (0 to (trie.children.length - 1)).flatMap(index => {
         trie.children(index) match {
           case None => Vector()
           case Some(subTrie) if (subTrie.isFinal) => {
@@ -64,7 +64,6 @@ final case class Trie(
           case Some(subTrie) => descendCharByChar(accumulator :+ index, subTrie)
         }
       }).toList
-    }
 
     descendCharByChar(Vector(), this).map(getStringFromIndexes)
   }
@@ -77,7 +76,7 @@ final case class Trie(
         case head +: tail => trie.children(head).flatMap(descendWithPrefix(tail, _))
       }
 
-    val subTrie = descendWithPrefix(getIndexes(prefix), this)
+    val subTrie = descendWithPrefix(getIndexesFromString(prefix), this)
     subTrie match {
       case None => List()
       case Some(subTrie) if (subTrie.isFinal) => prefix +: subTrie.keys.map(prefix + _)

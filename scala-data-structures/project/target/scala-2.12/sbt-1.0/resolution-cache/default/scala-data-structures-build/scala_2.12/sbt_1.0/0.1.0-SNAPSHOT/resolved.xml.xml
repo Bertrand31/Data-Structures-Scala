@@ -4,7 +4,7 @@
 		module="scala-data-structures-build"
 		revision="0.1.0-SNAPSHOT"
 		status="integration"
-		publication="20190506135443"
+		publication="20190506181335"
 		e:sbtVersion="1.0" e:scalaVersion="2.12"
 	>
 		<description>
