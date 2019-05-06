@@ -7,8 +7,9 @@ final case class Trie(
 
   private def getIndexesFromString: String => Seq[Int] =
     _
+      .toLowerCase
       .toCharArray
-      .map(_.toLower.charValue - 97) // 'a' is 97, 'b' is 98, etc
+      .map(_.charValue - 97) // 'a' is 97, 'b' is 98, etc
       .toList
 
   private def getStringFromIndexes: Seq[Int] => String =
