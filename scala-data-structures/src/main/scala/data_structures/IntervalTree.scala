@@ -8,8 +8,10 @@ final case class IntervalTree(
   private val overlappingRightSorted: List[(Int, Int)]
 ) {
 
-  def getOverlappingFromPoint(point: Int): List[(Int, Int)] = {
-    def getIntervals(point: Int, tree: Option[IntervalTree]): List[(Int, Int)] =
+  import IntervalTree.{Interval, Point}
+
+  def getOverlappingFromPoint(point: Point): List[Interval] = {
+    def getIntervals(point: Point, tree: Option[IntervalTree]): List[Interval] =
       tree match {
         case None => List()
         case Some(tree) => {
@@ -27,11 +29,11 @@ final case class IntervalTree(
     getIntervals(point, Some(this))
   }
 
-  def getOverlappingFromInterval(interval: (Int, Int)): List[(Int, Int)] = {
+  def getOverlappingFromInterval(interval: Interval): List[Interval] = {
     if (interval._2 <= this.centerPoint) getOverlappingFromPoint(interval._2)
     else if (interval._1 >= this.centerPoint) getOverlappingFromPoint(interval._1)
     else {
-      def getIntervals(interval: (Int, Int), tree: Option[IntervalTree]): List[(Int, Int)] =
+      def getIntervals(interval: Interval, tree: Option[IntervalTree]): List[Interval] =
         tree match {
           case None => List()
           case Some(tree) => {
@@ -52,9 +54,12 @@ final case class IntervalTree(
 
 object IntervalTree {
 
-  def apply(intervals: List[(Int, Int)]): Option[IntervalTree] = {
+  type Point = Int
+  type Interval = (Point, Point)
 
-    def createIntervalTree: List[(Int, Int)] => Option[IntervalTree] =
+  def apply(intervals: List[Interval]): Option[IntervalTree] = {
+
+    def createIntervalTree: List[Interval] => Option[IntervalTree] =
       _ match {
         case List() => None
         case intervals => {
