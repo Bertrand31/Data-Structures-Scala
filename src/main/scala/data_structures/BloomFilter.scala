@@ -1,6 +1,6 @@
 package data_structures
 
-import  scala.collection.BitSet
+import scala.collection.BitSet
 import scala.util.hashing.MurmurHash3.stringHash
 import Math.{abs, ceil, log, pow, round}
 
