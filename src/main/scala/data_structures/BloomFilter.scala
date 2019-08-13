@@ -10,7 +10,7 @@ case class BloomFilter[A](
   private val bitset: BitSet,
   private val maxSize: Int,
   private val numberOfHashFunctions: Int,
-  private val hashSeed: Int
+  private val hashSeed: Int,
 ) {
 
   private lazy val hashFunctions: Stream[String => Int] =
@@ -20,7 +20,7 @@ case class BloomFilter[A](
 
   def +=(item: A): BloomFilter[A] = {
     val itemString = item.toString
-    copy(bitset=(this.bitset ++ hashFunctions.map(_(itemString))))
+    copy(bitset=(bitset ++ hashFunctions.map(_(itemString))))
   }
 
   def ++=(items: Seq[A]): BloomFilter[A] = items.foldLeft(this)(_ += _)
@@ -30,12 +30,14 @@ case class BloomFilter[A](
     hashFunctions.forall(bitset contains _(itemString))
   }
 
-  def approxNumberOfItems(): Int = {
+  def approxNumberOfItems: Int = {
     val totalBits = maxSize.toDouble
     round(
       (-totalBits / numberOfHashFunctions.toDouble) * log((1D - (bitset.size.toDouble / totalBits)))
     ).toInt
   }
+
+  def isEmpty: Boolean = bitset.isEmpty
 }
 
 object BloomFilter {
@@ -58,7 +60,7 @@ object BloomFilter {
       bitset=BitSet(),
       maxSize=maxSize,
       numberOfHashFunctions=getNumberOfHashFunctions(nbOfItems, maxSize),
-      hashSeed=scala.util.Random.nextInt
+      hashSeed=scala.util.Random.nextInt,
     )
   }
 }
@@ -66,25 +68,16 @@ object BloomFilter {
 object BloomFilterTest {
 
   def main(args: Array[String]): Unit = {
-    val empty = BloomFilter[Int](4, 0.1f)
+    val empty = BloomFilter[Int](100000, 0.1f)
+    assert(empty.isEmpty)
     val withOne = empty += 4
+    assert(!withOne.isEmpty)
     val withThree = withOne ++= Vector(5, 2910)
-    println(withThree mayContain 4)
-    println(withThree mayContain 5)
-    println(withThree mayContain 2910)
-    println(withThree mayContain 211)
-    println(withThree.approxNumberOfItems)
-    val t0 = System.nanoTime()
-    (0 to 100000000).foreach(i => {
-      empty += i
-    })
-    val t1 = System.nanoTime()
-    println("Elapsed time: " + (t1 - t0) + "ns")
-    val t2 = System.nanoTime()
-    (0 to 100000000).foreach(i => {
-      empty mayContain i
-    })
-    val t3 = System.nanoTime()
-    println("Elapsed time: " + (t3 - t2) + "ns")
+    println(withThree mayContain 4) // Will likely be true
+    println(withThree mayContain 5) // Will likely be true
+    println(withThree mayContain 2910) // Will likely be true
+    println(withThree mayContain 211) // Will be false
+    assert(!withThree.mayContain(211))
+    println(withThree.approxNumberOfItems) // Should be ~3
   }
 }
