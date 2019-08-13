@@ -18,7 +18,7 @@ final case class Trie(
       .map(_.toChar)
       .mkString("")
 
-  def +=(word: String): Trie = {
+  def :+(word: String): Trie = {
     def insertIndexes(indexes: Seq[Int], trie: Trie): Trie =
       indexes match {
         case head +: Nil => {
@@ -37,9 +37,9 @@ final case class Trie(
     insertIndexes(getIndexesFromString(word), this)
   }
 
-  def ++=(words: Seq[String]): Trie = words.foldLeft(this)(_ += _)
+  def ++(words: IterableOnce[String]): Trie = words.iterator.foldLeft(this)(_ :+ _)
 
-  def ++(trie: Trie): Trie = this ++= trie.keys
+  def ++(trie: Trie): Trie = this ++ trie.keys
 
   def contains(word: String): Boolean = {
     def endsOnLastIndex(indexes: Seq[Int], trie: Trie): Boolean =
@@ -94,7 +94,7 @@ object Trie {
     Trie(
       children=Array.fill[Option[Trie]](LatinAlphabetLength)(None),
       isFinal=false
-    ) ++= initialItems
+    ) ++ initialItems
 }
 
 object TrieTest {
@@ -102,14 +102,14 @@ object TrieTest {
   def main(args: Array[String]): Unit = {
     val newTrie = Trie()
     assert(newTrie.isEmpty == true)
-    val trieWithBar = newTrie += "bar"
+    val trieWithBar = newTrie :+ "bar"
     assert(newTrie.isEmpty == true) // No mutation
     assert(trieWithBar.isEmpty == false)
     assert(trieWithBar.contains("bar") == true)
     assert(trieWithBar.contains("baz") == false)
-    val trieWithFooBar = trieWithBar += "foo"
+    val trieWithFooBar = trieWithBar :+ "foo"
     assert(trieWithFooBar.keys == List("bar", "foo"))
-    val complexTrie = trieWithFooBar += "barreau"
+    val complexTrie = trieWithFooBar :+ "barreau"
     assert(complexTrie.keys == List("bar", "barreau", "foo"))
     assert(complexTrie.keysWithPrefix("barr") == List("barreau"))
     assert(complexTrie.keysWithPrefix("bar") == List("bar", "barreau"))
