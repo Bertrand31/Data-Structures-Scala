@@ -1,12 +1,22 @@
-import Dependencies._
+name := "Scala Data Structures"
 
-ThisBuild / scalaVersion     := "2.13.0"
-ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "example"
+version := "1"
 
-lazy val root = (project in file("."))
-  .settings(
-    name := "Scala Data Structures",
-    libraryDependencies += scalaTest % Test
-  )
+scalaVersion := "2.13.0"
+
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.0.8",
+)
+
+scalacOptions ++= Seq(
+  "-deprecation", // Warn about deprecated features
+  "-encoding", "UTF-8", // Specify character encoding used by source files
+  "-feature", // Emit warning and location for usages of features that should be imported explicitly
+  "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
+  "-language:higherKinds", // Allow higher-kinded types
+  "-unchecked", // Enable additional warnings where generated code depends on assumptions
+  "-Xlint:_", // Enable all available style warnings
+  "-Ywarn-macros:after", // Only inspect expanded trees when generating unused symbol warnings
+  "-Ywarn-unused:_", // Enables all unused warnings
+  "-Ywarn-value-discard", // Warn when non-Unit expression results are unused
+)
