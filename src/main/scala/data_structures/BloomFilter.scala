@@ -37,7 +37,7 @@ case class BloomFilter[A](
     ).toInt
   }
 
-  def isEmpty: Boolean = bitset.isEmpty
+  lazy val isEmpty: Boolean = bitset.isEmpty
 }
 
 object BloomFilter {
@@ -68,7 +68,7 @@ object BloomFilter {
 object BloomFilterTest {
 
   def main(args: Array[String]): Unit = {
-    val empty = BloomFilter[Int](100000, 0.1f)
+    val empty = BloomFilter[Int](100000, 0.0001f)
     assert(empty.isEmpty)
     val withOne = empty :+ 4
     assert(!withOne.isEmpty)
