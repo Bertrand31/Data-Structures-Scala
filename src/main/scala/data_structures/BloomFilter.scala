@@ -18,12 +18,12 @@ case class BloomFilter[A](
       .to(LazyList)
       .map(i => (str: String) => abs(stringHash(str, hashSeed + i)) % maxSize)
 
-  def :+(item: A): BloomFilter[A] = {
+  def +(item: A): BloomFilter[A] = {
     val itemString = item.toString
     copy(bitset=(bitset ++ hashFunctions.map(_(itemString))))
   }
 
-  def ++(items: IterableOnce[A]): BloomFilter[A] = items.iterator.foldLeft(this)(_ :+ _)
+  def ++(items: IterableOnce[A]): BloomFilter[A] = items.iterator.foldLeft(this)(_ + _)
 
   def mayContain(item: A): Boolean = {
     val itemString = item.toString
@@ -70,7 +70,7 @@ object BloomFilterTest {
   def main(args: Array[String]): Unit = {
     val empty = BloomFilter[Int](100000, 0.0001f)
     assert(empty.isEmpty)
-    val withOne = empty :+ 4
+    val withOne = empty + 4
     assert(!withOne.isEmpty)
     val withThree = withOne ++ Vector(5, 2910)
     println(withThree mayContain 4) // Will likely be true
