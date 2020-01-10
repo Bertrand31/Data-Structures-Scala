@@ -28,6 +28,14 @@ final case class CountMinSketch(
       isEmpty=false,
     )
   }
+
+  def occurences(str: String): Int =
+    this.sketch
+      .zip(hashFunctions.map(_(str)))
+      .foldLeft(Integer.MAX_VALUE)((acc, kv) => {
+        val (row, hash) = kv
+        acc min row(hash)
+      })
 }
 
 object CountMinSketch {
@@ -46,6 +54,7 @@ object CountMinSketchTest {
     assert(sketch.isEmpty)
     val un = sketch + "foo"
     val deux = un + "bar" + "foo"
-    ()
+    println(deux occurences "bar")
+    println(deux occurences "foo")
   }
 }
