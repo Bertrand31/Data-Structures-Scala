@@ -2,7 +2,7 @@ package data_structures
 
 import scala.util.hashing.MurmurHash3.stringHash
 
-final case class CountMinSketch(
+final case class CountMinSketch[A](
   private val sketch: Array[Array[Int]],
   private val hashSeed: Int,
   val isEmpty: Boolean = true,
@@ -13,7 +13,7 @@ final case class CountMinSketch(
       .to(LazyList)
       .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % sketch.head.length)
 
-  def +(str: String): CountMinSketch = {
+  def +(str: String): CountMinSketch[A] = {
     val hashes = hashFunctions.map(_(str))
     val newSketch =
       this.sketch
@@ -22,35 +22,37 @@ final case class CountMinSketch(
           val (row, hash) = kv
           row.updated(hash, row(hash) + 1)
         })
-    println(newSketch.toList.map(_.toList))
     this.copy(
       sketch=newSketch,
       isEmpty=false,
     )
   }
 
-  def occurences(str: String): Int =
+  def occurences(item: A): Int = {
+    val str = item.toString
+    val hashes = hashFunctions.map(_(str))
     this.sketch
-      .zip(hashFunctions.map(_(str)))
+      .zip(hashes)
       .foldLeft(Integer.MAX_VALUE)((acc, kv) => {
         val (row, hash) = kv
         acc min row(hash)
       })
+  }
 }
 
 object CountMinSketch {
 
-  def apply(w: Int, d: Int): CountMinSketch = {
+  def apply[A](w: Int, d: Int): CountMinSketch[A] = {
     val sketch = Array.fill(d)(Array.fill(w)(0))
     val hashSeed = scala.util.Random.nextInt
-    CountMinSketch(sketch, hashSeed)
+    CountMinSketch[A](sketch, hashSeed)
   }
 }
 
 object CountMinSketchTest {
 
   def main(args: Array[String]): Unit = {
-    val sketch = CountMinSketch(10, 10)
+    val sketch = CountMinSketch[String](10, 10)
     assert(sketch.isEmpty)
     val un = sketch + "foo"
     val deux = un + "bar" + "foo"
