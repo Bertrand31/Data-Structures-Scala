@@ -54,6 +54,14 @@ sealed trait LinkedList[+A] {
 
   def reverse[U >: A]: LinkedList[U] = this.reverseInternal()
 
+  private def lengthInternal(soFar: Int = 0): Int =
+    this match {
+      case Empty => soFar
+      case Node(_, next) => next.lengthInternal(soFar + 1)
+    }
+
+  lazy val length = this.lengthInternal()
+
   private def toStringInternal(soFar: String = ""): String =
     this match {
       case Empty => soFar
@@ -75,10 +83,11 @@ object LinkedListTest extends App {
   assert(list.find(_ == "bar").isDefined)
   assert(list.find(_ == "test").isDefined)
   assert(list.find(_ == "baz").isEmpty)
+  assert(list.length == 3)
   assert(list.count(_.length == 3) == 2)
   assert(list.exists(_.length == 4))
   assert(!list.exists(_.length == 5))
   assert(list.forall(_.length < 5))
-  println(list.toString)
-  println(list.reverse.toString)
+  assert(list.toString == "List(test, foo, bar)")
+  assert(list.reverse.toString == "List(bar, foo, test)")
 }
