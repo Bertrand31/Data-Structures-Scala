@@ -9,12 +9,35 @@ sealed trait LinkedList[+A] {
   def find[U >: A](predicate: U => Boolean): Option[U] =
     this match {
       case Empty => None
-      case node: Node[A] =>
-        if (predicate(node.value)) Some(node.value)
-        else node.next.find(predicate)
+      case Node(value, next) =>
+        if (predicate(value)) Some(value)
+        else next.find(predicate)
     }
 
-  // def ++:[U >: A](seq: TraversableOnce[U]): LinkedList[U] = seq.foldLeft(this)(_ +: _)
+  def tap[U >: A](fn: U => Unit): LinkedList[U] =
+    this match {
+      case Empty => Empty
+      case Node(value, next) => {
+        fn(value)
+        next.tap(fn)
+      }
+    }
+
+  def exists[U >: A](predicate: U => Boolean): Boolean =
+    this match {
+      case Empty => false
+      case Node(value, next) =>
+        if (predicate(value)) true
+        else next.exists(predicate)
+    }
+
+  def count[U >: A](predicate: U => Boolean, soFar: Int = 0): Int =
+    this match {
+      case Empty => soFar
+      case Node(value, next) =>
+        next.count(predicate, if (predicate(value)) soFar + 1 else soFar)
+    }
+
 }
 
 final case class Node[A](value: A, next: LinkedList[A]) extends LinkedList[A]
@@ -26,4 +49,7 @@ object LinkedListTest extends App {
   assert(list.find(_ == "bar").isDefined)
   assert(list.find(_ == "test").isDefined)
   assert(list.find(_ == "baz").isEmpty)
+  assert(list.count(_.length == 3) == 2)
+  assert(list.exists(_.length == 4))
+  assert(!list.exists(_.length == 5))
 }
