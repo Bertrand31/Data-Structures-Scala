@@ -31,6 +31,14 @@ sealed trait LinkedList[+A] {
         else next.exists(predicate)
     }
 
+  def forall[U >: A](predicate: U => Boolean, soFar: Boolean = true): Boolean =
+    this match {
+      case Empty => soFar
+      case Node(value, next) =>
+        if (predicate(value)) next.forall(predicate, soFar)
+        else false
+    }
+
   def count[U >: A](predicate: U => Boolean, soFar: Int = 0): Int =
     this match {
       case Empty => soFar
@@ -52,4 +60,5 @@ object LinkedListTest extends App {
   assert(list.count(_.length == 3) == 2)
   assert(list.exists(_.length == 4))
   assert(!list.exists(_.length == 5))
+  assert(list.forall(_.length < 5))
 }
