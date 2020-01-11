@@ -9,11 +9,12 @@ final case class CountMinSketch[A](
 ) {
 
   private lazy val hashFunctions: LazyList[String => Int] =
-    (1 to sketch.length)
+    (1 until sketch.length)
       .to(LazyList)
       .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % sketch.head.length)
 
-  def +(str: String): CountMinSketch[A] = {
+  def +(item: A): CountMinSketch[A] = {
+    val str = item.toString
     val hashes = hashFunctions.map(_(str))
     val newSketch =
       this.sketch
@@ -27,6 +28,8 @@ final case class CountMinSketch[A](
       isEmpty=false,
     )
   }
+
+  def ++(items: IterableOnce[A]): CountMinSketch[A] = items.iterator.foldLeft(this)(_ + _)
 
   def occurences(item: A): Int = {
     val str = item.toString
@@ -42,21 +45,32 @@ final case class CountMinSketch[A](
 
 object CountMinSketch {
 
-  def apply[A](w: Int, d: Int): CountMinSketch[A] = {
-    val sketch = Array.fill(d)(Array.fill(w)(0))
-    val hashSeed = scala.util.Random.nextInt
-    CountMinSketch[A](sketch, hashSeed)
-  }
+  def apply[A](w: Int, d: Int): CountMinSketch[A] =
+    CountMinSketch[A](
+      sketch=Array.fill(d)(Array.fill(w)(0)),
+      hashSeed=scala.util.Random.nextInt,
+    )
 }
 
 object CountMinSketchTest {
+
+  import scala.util.Random
 
   def main(args: Array[String]): Unit = {
     val sketch = CountMinSketch[String](10, 10)
     assert(sketch.isEmpty)
     val un = sketch + "foo"
+    assert(!un.isEmpty)
     val deux = un + "bar" + "foo"
     println(deux occurences "bar")
     println(deux occurences "foo")
+
+    val numbersSketch = CountMinSketch[Int](100, 100)
+    val stream =
+      (1 to 100)
+        .to(LazyList)
+        .map(_ => Random.between(1, 10))
+    val populated = numbersSketch ++ stream
+    println(populated occurences 3)
   }
 }
