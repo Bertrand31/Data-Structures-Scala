@@ -6,6 +6,12 @@ sealed trait LinkedList[+A] {
 
   def +:[U >: A](elem: U): LinkedList[U] = Node(elem, this)
 
+  def map[B](fn: A => B): LinkedList[B] =
+    this match {
+      case Empty => Empty
+      case Node(value, next) => Node(fn(value), next.map(fn))
+    }
+
   def find[U >: A](predicate: U => Boolean): Option[U] =
     this match {
       case Empty => None
@@ -90,4 +96,5 @@ object LinkedListTest extends App {
   assert(list.forall(_.length < 5))
   assert(list.toString == "List(test, foo, bar)")
   assert(list.reverse.toString == "List(bar, foo, test)")
+  assert(list.map(_.length).toString == "List(4, 3, 3)")
 }
