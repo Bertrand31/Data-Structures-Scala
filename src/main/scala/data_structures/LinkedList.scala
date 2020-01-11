@@ -46,6 +46,24 @@ sealed trait LinkedList[+A] {
         next.count(predicate, if (predicate(value)) soFar + 1 else soFar)
     }
 
+  private def reverseInternal[U >: A](soFar: LinkedList[U] = Empty): LinkedList[U] =
+    this match {
+      case Empty => soFar
+      case Node(value, next) => next.reverseInternal(Node(value, soFar))
+    }
+
+  def reverse[U >: A]: LinkedList[U] = this.reverseInternal()
+
+  private def toStringInternal(soFar: String = ""): String =
+    this match {
+      case Empty => soFar
+      case Node(value, next) => {
+        val newString = if (soFar.isEmpty) value.toString else s"$soFar, $value"
+        next.toStringInternal(newString)
+      }
+    }
+
+  override def toString: String = "List(" + this.toStringInternal() + ")"
 }
 
 final case class Node[A](value: A, next: LinkedList[A]) extends LinkedList[A]
@@ -61,4 +79,6 @@ object LinkedListTest extends App {
   assert(list.exists(_.length == 4))
   assert(!list.exists(_.length == 5))
   assert(list.forall(_.length < 5))
+  println(list.toString)
+  println(list.reverse.toString)
 }
