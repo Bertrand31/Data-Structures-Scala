@@ -5,11 +5,11 @@ import scala.util.hashing.MurmurHash3.stringHash
 final case class CountMinSketch[A](
   private val sketch: Array[Array[Int]],
   private val hashSeed: Int,
-  val isEmpty: Boolean = true,
+  isEmpty: Boolean = true,
 ) {
 
   private lazy val hashFunctions: LazyList[String => Int] =
-    (1 until sketch.length)
+    (1 to sketch.length)
       .to(LazyList)
       .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % sketch.head.length)
 
@@ -66,11 +66,9 @@ object CountMinSketchTest {
     println(deux occurences "foo")
 
     val numbersSketch = CountMinSketch[Int](100, 100)
-    val stream =
-      (1 to 100)
-        .to(LazyList)
-        .map(_ => Random.between(1, 10))
-    val populated = numbersSketch ++ stream
+    val indexedSeq = (1 to 10000).map(_ => Random.between(1, 10))
+    val populated = numbersSketch ++ indexedSeq
     println(populated occurences 3)
+    println(indexedSeq.count(_ == 3))
   }
 }
