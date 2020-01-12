@@ -14,13 +14,14 @@ sealed trait LinkedList[+A] {
       case Node(value, next) => Node(fn(value), next.map(fn))
     }
 
-  def headOption: Option[_] =
+  def headOption: Option[A] =
     this match {
       case Empty => None
       case Node(value, _) => Some(value)
     }
 
-  def lastOption: Option[_] =
+  @tailrec
+  def lastOption: Option[A] =
     this match {
       case Empty => None
       case Node(value, next) =>
