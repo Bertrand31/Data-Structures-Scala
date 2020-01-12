@@ -1,5 +1,6 @@
 package data_structures
 
+import scala.util.Random
 import scala.util.hashing.MurmurHash3.stringHash
 
 final case class CountMinSketch[A](
@@ -30,13 +31,11 @@ final case class CountMinSketch[A](
 
   def occurences(item: A): Int = {
     val str = item.toString
-    val hashes = hashFunctions.map(_(str))
-    this.sketch
-      .zip(hashes)
-      .foldLeft(Integer.MAX_VALUE)((acc, kv) => {
-        val (row, hash) = kv
-        acc min row(hash)
-      })
+    hashFunctions
+      .map(_(str))
+      .zip(this.sketch)
+      .map({ case (hash, row) => row(hash) }) // Still a lazy list at this point
+      .min // This forces the evaluation
   }
 }
 
@@ -45,13 +44,11 @@ object CountMinSketch {
   def apply[A](width: Int, depth: Int): CountMinSketch[A] =
     CountMinSketch[A](
       sketch=Array.fill(depth)(Array.fill(width)(0)),
-      hashSeed=scala.util.Random.nextInt,
+      hashSeed=Random.nextInt,
     )
 }
 
 object CountMinSketchTest extends App {
-
-  import scala.util.Random
 
   val sketch = CountMinSketch[String](10, 10)
   assert(sketch.isEmpty)
