@@ -47,20 +47,3 @@ object CountMinSketch {
       hashSeed=Random.nextInt,
     )
 }
-
-object CountMinSketchTest extends App {
-
-  val sketch = CountMinSketch[String](10, 10)
-  assert(sketch.isEmpty)
-  val un = sketch + "foo"
-  assert(!un.isEmpty)
-  val deux = un + "bar" + "foo"
-  println(deux occurences "bar")
-  println(deux occurences "foo")
-
-  val numbersSketch = CountMinSketch[Int](100, 100)
-  val indexedSeq = (1 to 10000).map(_ => Random.between(1, 10))
-  val populated = numbersSketch ++ indexedSeq
-  println(populated occurences 3)
-  println(indexedSeq.count(_ == 3))
-}
