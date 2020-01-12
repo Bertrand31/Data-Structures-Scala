@@ -14,6 +14,28 @@ sealed trait LinkedList[+A] {
       case Node(value, next) => Node(fn(value), next.map(fn))
     }
 
+  def headOption: Option[_] =
+    this match {
+      case Empty => None
+      case Node(value, _) => Some(value)
+    }
+
+  def lastOption: Option[_] =
+    this match {
+      case Empty => None
+      case Node(value, next) =>
+        next match {
+          case Empty => Some(value)
+          case nextNode => nextNode.lastOption
+        }
+    }
+
+  def tailOption: Option[LinkedList[A]] =
+    this match {
+      case Empty => None
+      case Node(_, next) => Some(next)
+    }
+
   @tailrec
   def find[U >: A](predicate: U => Boolean): Option[U] =
     this match {
