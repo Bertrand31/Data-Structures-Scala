@@ -115,19 +115,3 @@ sealed trait LinkedList[+A] {
 
 final case class Node[A](value: A, next: LinkedList[A]) extends LinkedList[A]
 final case object Empty extends LinkedList[Nothing]
-
-object LinkedListTest extends App {
-
-  val list = Node("test", Node("foo", Node("bar", Empty)))
-  assert(list.find(_ == "bar").isDefined)
-  assert(list.find(_ == "test").isDefined)
-  assert(list.find(_ == "baz").isEmpty)
-  assert(list.length == 3)
-  assert(list.count(_.length == 3) == 2)
-  assert(list.exists(_.length == 4))
-  assert(!list.exists(_.length == 5))
-  assert(list.forall(_.length < 5))
-  assert(list.toString == "List(test, foo, bar)")
-  assert(list.reverse.toString == "List(bar, foo, test)")
-  assert(list.map(_.length).toString == "List(4, 3, 3)")
-}
