@@ -96,28 +96,3 @@ object Trie {
       isFinal=false
     ) ++ initialItems
 }
-
-object TrieTest {
-
-  def main(args: Array[String]): Unit = {
-    val newTrie = Trie()
-    assert(newTrie.isEmpty == true)
-    val trieWithBar = newTrie + "bar"
-    assert(newTrie.isEmpty == true) // No mutation
-    assert(trieWithBar.isEmpty == false)
-    assert(trieWithBar.contains("bar") == true)
-    assert(trieWithBar.contains("baz") == false)
-    val trieWithFooBar = trieWithBar + "foo"
-    assert(trieWithFooBar.keys == List("bar", "foo"))
-    val complexTrie = trieWithFooBar + "barreau"
-    assert(complexTrie.keys == List("bar", "barreau", "foo"))
-    assert(complexTrie.keysWithPrefix("barr") == List("barreau"))
-    assert(complexTrie.keysWithPrefix("bar") == List("bar", "barreau"))
-    assert(complexTrie.keysWithPrefix("baz") == List())
-    val sampleTrie = Trie("foo", "bar")
-    assert(sampleTrie.keys == List("bar", "foo"))
-    val sampleTrie2 = Trie("baz")
-    val mergedTrie = sampleTrie ++ sampleTrie2
-    assert(mergedTrie.keys == List("bar", "baz", "foo"))
-  }
-}
