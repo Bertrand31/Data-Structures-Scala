@@ -3,6 +3,7 @@ package data_structures
 import scala.collection.BitSet
 import scala.util.hashing.MurmurHash3.stringHash
 import Math.{abs, ceil, log, pow, round}
+import cats.implicits._
 
 case class BloomFilter[A](
   nbOfItems: Int,
@@ -13,24 +14,25 @@ case class BloomFilter[A](
   private val hashSeed: Int,
 ) {
 
+  private def makeHashFn(salt: Int): String => Int =
+    (stringHash(_: String, hashSeed |+| salt)) >>> abs >>> (_ % maxSize)
+
   private lazy val hashFunctions: LazyList[String => Int] =
-    (1 to numberOfHashFunctions)
-      .to(LazyList)
-      .map(i => (str: String) => abs(stringHash(str, hashSeed + i)) % maxSize)
+    (1 to numberOfHashFunctions).to(LazyList).map(makeHashFn)
 
   def +(item: A): BloomFilter[A] = {
     val itemString = item.toString
     copy(bitset=(bitset ++ hashFunctions.map(_(itemString))))
   }
 
-  def ++(items: IterableOnce[A]): BloomFilter[A] = items.iterator.foldLeft(this)(_ + _)
+  def `++`: IterableOnce[A] => BloomFilter[A] = _.iterator.foldLeft(this)(_ + _)
 
   def mayContain(item: A): Boolean = {
     val itemString = item.toString
     hashFunctions.forall(bitset contains _(itemString))
   }
 
-  def approxNumberOfItems: Int = {
+  lazy val approxNumberOfItems: Int = {
     val totalBits = maxSize.toDouble
     round(
       (-totalBits / numberOfHashFunctions.toDouble) * log((1D - (bitset.size.toDouble / totalBits)))
