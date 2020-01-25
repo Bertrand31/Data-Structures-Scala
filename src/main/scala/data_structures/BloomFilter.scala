@@ -64,20 +64,3 @@ object BloomFilter {
     )
   }
 }
-
-object BloomFilterTest {
-
-  def main(args: Array[String]): Unit = {
-    val empty = BloomFilter[Int](100000, 0.0001f)
-    assert(empty.isEmpty)
-    val withOne = empty + 4
-    assert(!withOne.isEmpty)
-    val withThree = withOne ++ Vector(5, 2910)
-    println(withThree mayContain 4) // Will likely be true
-    println(withThree mayContain 5) // Will likely be true
-    println(withThree mayContain 2910) // Will likely be true
-    println(withThree mayContain 211) // Will be false
-    assert(!withThree.mayContain(211))
-    println(withThree.approxNumberOfItems) // Should be ~3
-  }
-}
