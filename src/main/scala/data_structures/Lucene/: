@@ -1,0 +1,13 @@
+package data_structures
+
+object DocumentLoader {
+
+  private def lineToWords(line: String): Array[String] =
+    line.split(" ").map(_.toLowerCase)
+
+  def loadFromCSV(filename: String): Iterator[PointOfInterest] =
+    scala.io.Source.fromResource(filename)
+      .getLines
+      .map(_.split(";"))
+      .map(arrayToPIO)
+}
