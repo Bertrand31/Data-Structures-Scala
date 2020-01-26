@@ -8,7 +8,7 @@ final case class Lucene(
   private val UselessChars = Seq(',', '.', ';', '?', '!', '"')
 
   private def lineToWords(line: String): Array[String] =
-    line.split(" ").map(_.filterNot(UselessChars.contains))
+    line.split(" ").map(_.filterNot(UselessChars.contains)).map(_.toLowerCase)
 
   def loadFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
@@ -18,10 +18,9 @@ final case class Lucene(
     val newIndex = document.foldLeft(invertedIndex)((acc, tuple) => {
       val (lineNumber, line) = tuple
       lineToWords(line).foldLeft(acc)((index, word) => {
-        val lowerCaseWord = word.toLowerCase
-        val set = index.getOrElse(lowerCaseWord, Set())
+        val set = index.getOrElse(word, Set())
         val documentAndLinePair = (documentId, lineNumber)
-        index + (lowerCaseWord -> (set + documentAndLinePair))
+        index + (word -> (set + documentAndLinePair))
       })
     })
     this.copy(newDocuments, newIndex)
@@ -33,9 +32,8 @@ final case class Lucene(
     invertedIndex.getOrElse(word.toLowerCase, Set())
 
   def searchAndShow(word: String): Unit = {
-    val matches = search(word)
-    matches foreach (docIdAndLine => {
-      val (documentId, lineNumber) = docIdAndLine
+    search(word) foreach (matchTpl => {
+      val (documentId, lineNumber) = matchTpl
       val (documentName, lines) = documents(documentId)
       println(s"$documentName - $lineNumber: ${lines(lineNumber - 1)}")
     })
@@ -45,6 +43,5 @@ final case class Lucene(
 object LuceneTest extends App {
 
   val lucene = Lucene() loadFile "damysos.md" loadFile "loremipsum.txt"
-  lucene searchAndShow "lorem"
-  lucene searchAndShow "trie"
+  lucene searchAndShow "the"
 }
