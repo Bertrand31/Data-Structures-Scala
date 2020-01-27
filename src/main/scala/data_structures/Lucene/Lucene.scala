@@ -8,10 +8,10 @@ final case class Lucene(
   private val indexesTrie: Trie = Trie(),
 ) {
 
-  private def addToIndex(documentId: Int, document: IndexedSeq[(Int, String)]) =
+  private def addToIndex(documentId: Int, document: IndexedSeq[(Int, Array[String])]) =
     document.foldLeft(invertedIndex)((acc, line) => {
-      val (lineNumber, lineText) = line
-      LineSanitizing.lineToWords(lineText).foldLeft(acc)((index, word) => {
+      val (lineNumber, words) = line
+      words.foldLeft(acc)((index, word) => {
         val wordOccurences = index.getOrElse(word, Map())
         val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
         val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
@@ -19,18 +19,18 @@ final case class Lucene(
       })
     })
 
-  private def addToTrie(document: IndexedSeq[(Int, String)]): Trie =
-    document.foldLeft(indexesTrie)((trie, line) => {
-      trie ++ LineSanitizing.lineToWords(line._2)
-    })
+  private def addToTrie(document: IndexedSeq[(Int, Array[String])]): Trie =
+    document.foldLeft(indexesTrie)(_ ++ _._2)
 
   def ingestFile(filename: String): Lucene = {
-    val document = DocumentLoader.loadDocument(filename).filterNot(_._2.isEmpty)
+    val document = DocumentLoader.loadDocument(filename)
     val documentId = documents.size // Using the size of the documents map as an incremental counter
+    val sanitizedDoc =
+      document.map({ case (nb, line) => (nb, LineSanitizing.lineToWords(line)) })
     this.copy(
       documents=documents + (documentId -> ((filename, document.map(_._2)))),
-      invertedIndex=addToIndex(documentId, document),
-      indexesTrie=addToTrie(document),
+      invertedIndex=addToIndex(documentId, sanitizedDoc),
+      indexesTrie=addToTrie(sanitizedDoc),
     )
   }
 
@@ -67,6 +67,6 @@ final case class Lucene(
 object LuceneTest extends App {
 
   val lucene = Lucene() ingestFiles Seq("damysos.md", "loremipsum.txt")
-  // lucene searchAndShow "foo"
+  lucene searchAndShow "foo"
   lucene searchPrefixAndShow "sim"
 }
