@@ -12,21 +12,24 @@ final case class Lucene(
       .map(_.filterNot(UselessChars.contains))
       .map(_.toLowerCase)
 
-  def loadFile(filename: String): Lucene = {
-    val document = DocumentLoader.loadDocument(filename)
-    val documentId = documents.size
-    val documentTuple = (filename, document.map(_._2))
-    val newDocuments = documents + (documentId -> documentTuple)
-    val newIndex = document.foldLeft(invertedIndex)((acc, tuple) => {
-      val (lineNumber, line) = tuple
-      lineToWords(line).foldLeft(acc)((index, word) => {
-        val set = index.getOrElse(word, Map())
-        val currentMatches = set.getOrElse(documentId, Array[Int]()) :+ lineNumber
-        val documentAndLinePair = set + (documentId -> currentMatches)
+  private def ingestDocument(documentId: Int, document: IndexedSeq[(Int, String)]) =
+    document.foldLeft(invertedIndex)((acc, line) => {
+      val (lineNumber, lineText) = line
+      lineToWords(lineText).foldLeft(acc)((index, word) => {
+        val wordOccurences = index.getOrElse(word, Map())
+        val currentMatches = wordOccurences.getOrElse(documentId, Array()) :+ lineNumber
+        val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
         index + (word -> documentAndLinePair)
       })
     })
-    this.copy(newDocuments, newIndex)
+
+  def loadFile(filename: String): Lucene = {
+    val document = DocumentLoader.loadDocument(filename)
+    val documentId = documents.size // Using the size of the documents map as an incremental counter
+    this.copy(
+      documents=documents + (documentId -> ((filename, document.map(_._2)))),
+      invertedIndex=ingestDocument(documentId, document),
+    )
   }
 
   def loadFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ loadFile _)
