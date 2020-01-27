@@ -23,7 +23,7 @@ final case class Lucene(
       })
     })
 
-  def loadFile(filename: String): Lucene = {
+  def ingestFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
     val documentId = documents.size // Using the size of the documents map as an incremental counter
     this.copy(
@@ -32,15 +32,15 @@ final case class Lucene(
     )
   }
 
-  def loadFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ loadFile _)
+  def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
 
-  def search(word: String): Map[Int, Array[Int]] =
+  def searchWord(word: String): Map[Int, Array[Int]] =
     invertedIndex.getOrElse(word.toLowerCase, Map())
 
   import Console._
 
-  def searchAndShow(word: String): Unit =
-    search(word).foreach(matchTpl => {
+  private def printResults: Map[Int, Array[Int]] => Unit =
+    _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val (documentName, lines) = documents(documentId)
       println("")
@@ -49,10 +49,12 @@ final case class Lucene(
         println(s"${YELLOW}$line${RESET}: ${lines(line - 1)}")
       })
     })
+
+  def searchAndShow: String => Unit = printResults compose searchWord
 }
 
 object LuceneTest extends App {
 
-  val lucene = Lucene() loadFiles Seq("damysos.md", "loremipsum.txt")
+  val lucene = Lucene() ingestFiles Seq("damysos.md", "loremipsum.txt")
   lucene searchAndShow "foo"
 }
