@@ -1,45 +1,54 @@
 package data_structures
 
+import cats.implicits._
+
 final case class Lucene(
   private val documents: Map[Int, (String, IndexedSeq[String])] = Map(),
-  private val invertedIndex: Map[String, Map[Int, Array[Int]]] = Map(),
+  private val invertedIndex: Map[String, Map[Int, Vector[Int]]] = Map(),
+  private val indexesTrie: Trie = Trie(),
 ) {
 
-  private val UselessChars = Seq(',', '.', ';', '?', '!', '"')
-
-  private def lineToWords(line: String): Array[String] =
-    line.split(" ")
-      .map(_.filterNot(UselessChars.contains))
-      .map(_.toLowerCase)
-
-  private def ingestDocument(documentId: Int, document: IndexedSeq[(Int, String)]) =
+  private def addToIndex(documentId: Int, document: IndexedSeq[(Int, String)]) =
     document.foldLeft(invertedIndex)((acc, line) => {
       val (lineNumber, lineText) = line
-      lineToWords(lineText).foldLeft(acc)((index, word) => {
+      LineSanitizing.lineToWords(lineText).foldLeft(acc)((index, word) => {
         val wordOccurences = index.getOrElse(word, Map())
-        val currentMatches = wordOccurences.getOrElse(documentId, Array()) :+ lineNumber
+        val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
         val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
         index + (word -> documentAndLinePair)
       })
     })
 
+  private def addToTrie(document: IndexedSeq[(Int, String)]): Trie =
+    document.foldLeft(indexesTrie)((trie, line) => {
+      trie ++ LineSanitizing.lineToWords(line._2)
+    })
+
   def ingestFile(filename: String): Lucene = {
-    val document = DocumentLoader.loadDocument(filename)
+    val document = DocumentLoader.loadDocument(filename).filterNot(_._2.isEmpty)
     val documentId = documents.size // Using the size of the documents map as an incremental counter
     this.copy(
       documents=documents + (documentId -> ((filename, document.map(_._2)))),
-      invertedIndex=ingestDocument(documentId, document),
+      invertedIndex=addToIndex(documentId, document),
+      indexesTrie=addToTrie(document),
     )
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
 
-  def searchWord(word: String): Map[Int, Array[Int]] =
-    invertedIndex.getOrElse(word.toLowerCase, Map())
+  def searchWord(word: String): Map[Int, Vector[Int]] =
+    invertedIndex
+      .getOrElse(word.toLowerCase, Map())
+
+  def searchPrefix(prefix: String): Map[Int, Vector[Int]] =
+    indexesTrie
+      .keysWithPrefix(prefix)
+      .map(searchWord)
+      .foldMap(identity)
 
   import Console._
 
-  private def printResults: Map[Int, Array[Int]] => Unit =
+  private def printResults: Map[Int, Vector[Int]] => Unit =
     _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val (documentName, lines) = documents(documentId)
@@ -51,10 +60,13 @@ final case class Lucene(
     })
 
   def searchAndShow: String => Unit = printResults compose searchWord
+
+  def searchPrefixAndShow: String => Unit = printResults compose searchPrefix
 }
 
 object LuceneTest extends App {
 
   val lucene = Lucene() ingestFiles Seq("damysos.md", "loremipsum.txt")
-  lucene searchAndShow "foo"
+  // lucene searchAndShow "foo"
+  lucene searchPrefixAndShow "sim"
 }

@@ -60,6 +60,6 @@ class TrieSpec extends AnyFlatSpec {
     val sampleTrie = Trie("foo", "bar")
     val sampleTrie2 = Trie("baz")
     val mergedTrie = sampleTrie ++ sampleTrie2
-    assert(mergedTrie.keys == List("bar", "baz", "foo"))
+    assert(mergedTrie.keys.sorted == List("bar", "baz", "foo"))
   }
 }
