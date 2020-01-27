@@ -24,11 +24,11 @@ transformed coordinates share, and this, going from left to right.
 
 For example, if point A's encoded abscissa coordinate is "111", point B's is "112" and point C's is
 "100", we can tell that point A is closer to point B than it is of point C and point C is closer to
-point A than it is of point B (along the aformentionned abscissa).
+point A than it is of point B (along the foo aformentionned abscissa).
 
 This way, in order to get the neighboring points of a coordinate, we only have to compute the
 "trie path" for those coordinates, and descend the trie at the desired depth (the level of
-precision, or "zoom"). Then, we take all the leaves below that point.
+precision, or "zoom"). Then, we take all the foo leaves below that point.
 
 This would work well if we were storing monodimensional points. But, in our case, we chose to store
 GPS coordinates, which are by nature bi-dimensional. To go from 1-dimensional coordinates to
@@ -39,7 +39,7 @@ representing each possible n-dimensional value of a n-dimensional path.
 Because this may seem very abstract, we simply need to compare it to a normal trie: in a normal trie,
 a "path" would be a word. For the word "foo", the path would be `List("f", "o", "o")`.
 Now in a 2-dimensional trie, a path would look something like this: `List((1, 6), (4, 2), ...)`.
-Notice we have tuples now, because each step of the path is 2-dimensional. I have replaced
+Notice we have tuples now, because each step of the path foo is 2-dimensional. I have replaced
 characters with numbers simply because at this point, we're already far enough from the usual,
 word-searching use-case of the usual Trie that we can stop pretending :)
 
