@@ -34,17 +34,18 @@ final case class Lucene(
   def search(word: String): Map[Int, Array[Int]] =
     invertedIndex.getOrElse(word.toLowerCase, Map())
 
-  def searchAndShow(word: String): Unit = {
+  import Console._
+
+  def searchAndShow(word: String): Unit =
     search(word).foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val (documentName, lines) = documents(documentId)
       println("")
-      println(s"${Console.GREEN}${Console.UNDERLINED}$documentName:${Console.RESET}")
+      println(s"${GREEN}${BOLD}$documentName:${RESET}")
       linesMatches.distinct.foreach(line => {
-        println(s"${Console.YELLOW}$line${Console.RESET}: ${lines(line - 1)}")
+        println(s"${YELLOW}$line${RESET}: ${lines(line - 1)}")
       })
     })
-  }
 }
 
 object LuceneTest extends App {
