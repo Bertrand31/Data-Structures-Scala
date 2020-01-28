@@ -4,7 +4,7 @@ import scala.collection.immutable.ArraySeq
 import cats.implicits._
 
 final case class Lucene(
-  private val documents: Map[Int, (String, IndexedSeq[String])] = Map(),
+  private val documents: Map[Int, String] = Map(),
   private val invertedIndex: Map[String, Map[Int, ArraySeq[Int]]] = Map(),
   private val indexesTrie: Trie = Trie(),
 ) {
@@ -25,12 +25,11 @@ final case class Lucene(
   }
 
   def ingestFile(filename: String): Lucene = {
-    val document = DocumentLoader.loadDocument(filename)
+    val document = DocumentLoader.loadDocumentWithLinesNumbers(filename)
     val documentId = this.documents.size // Using the size of the documents map as a counter ID
-    val documentTuple = (filename, document.map(_._2))
     document
       .foldLeft(this)(ingestLine(documentId))
-      .copy(documents=this.documents + (documentId -> documentTuple))
+      .copy(documents=this.documents + (documentId -> filename))
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
@@ -49,8 +48,9 @@ final case class Lucene(
   private def printResults: Map[Int, ArraySeq[Int]] => Unit =
     _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
-      val (documentName, lines) = documents(documentId)
-      println(s"\n${GREEN}${BOLD}$documentName:${RESET}")
+      val filename = documents(documentId)
+      val lines = DocumentLoader.loadDocument(filename).take(linesMatches.max).toArray
+      println(s"\n${GREEN}${BOLD}$filename:${RESET}")
       linesMatches.distinct.foreach(line => {
         println(s"${YELLOW}$line${RESET}: ${lines(line - 1)}")
       })
