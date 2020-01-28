@@ -15,22 +15,22 @@ final case class Lucene(
     val withNewDocument = this.copy(documents=newDocuments)
     document.foldLeft(withNewDocument)((lucene, line) => {
       val (lineNumber, lineString) = line
-      LineSanitizing.lineToWords(lineString).foldLeft(lucene)((acc, word) => {
-        val wordOccurences = acc.invertedIndex.getOrElse(word, Map())
+      val words = LineSanitizing.lineToWords(lineString)
+      val newTrie = indexesTrie ++ words
+      val newIndex = words.foldLeft(invertedIndex)((index, word) => {
+        val wordOccurences = index.getOrElse(word, Map())
         val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
         val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
-        val newIndex = acc.invertedIndex + (word -> documentAndLinePair)
-        val newTrie = acc.indexesTrie + word
-        acc.copy(invertedIndex=newIndex, indexesTrie=newTrie)
+        index + (word -> documentAndLinePair)
       })
+    lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
     })
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
 
   def searchWord(word: String): Map[Int, Vector[Int]] =
-    invertedIndex
-      .getOrElse(word.toLowerCase, Map())
+    invertedIndex.getOrElse(word.toLowerCase, Map())
 
   def searchPrefix(prefix: String): Map[Int, Vector[Int]] =
     indexesTrie
