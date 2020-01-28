@@ -11,23 +11,26 @@ final case class Lucene(
 
   import ArraySeqMonoid._
 
+  private def ingestLine(docId: Int)(lucene: Lucene, line: (Int, String)): Lucene = {
+    val (lineNumber, lineString) = line
+    val words = LineSanitizing.lineToWords(lineString)
+    val newTrie = lucene.indexesTrie ++ words
+    val newIndex = words.foldLeft(lucene.invertedIndex)((index, word) => {
+      val wordOccurences = index.getOrElse(word, Map())
+      val currentMatches = wordOccurences.getOrElse(docId, ArraySeq()) :+ lineNumber
+      val documentAndLinePair = wordOccurences + (docId -> currentMatches)
+      index + (word -> documentAndLinePair)
+    })
+    lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
+  }
+
   def ingestFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
     val documentId = documents.size // Using the size of the documents map as an incremental counter
     val newDocuments = documents + (documentId -> ((filename, document.map(_._2))))
-    val withNewDocument = this.copy(documents=newDocuments)
-    document.foldLeft(withNewDocument)((lucene, line) => {
-      val (lineNumber, lineString) = line
-      val words = LineSanitizing.lineToWords(lineString)
-      val newTrie = lucene.indexesTrie ++ words
-      val newIndex = words.foldLeft(lucene.invertedIndex)((index, word) => {
-        val wordOccurences = index.getOrElse(word, Map())
-        val currentMatches = wordOccurences.getOrElse(documentId, ArraySeq()) :+ lineNumber
-        val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
-        index + (word -> documentAndLinePair)
-      })
-      lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
-    })
+    document
+      .foldLeft(this)(ingestLine(documentId))
+      .copy(documents=newDocuments)
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
@@ -47,8 +50,7 @@ final case class Lucene(
     _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val (documentName, lines) = documents(documentId)
-      println("")
-      println(s"${GREEN}${BOLD}$documentName:${RESET}")
+      println(s"\n${GREEN}${BOLD}$documentName:${RESET}")
       linesMatches.distinct.foreach(line => {
         println(s"${YELLOW}$line${RESET}: ${lines(line - 1)}")
       })
