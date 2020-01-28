@@ -8,30 +8,22 @@ final case class Lucene(
   private val indexesTrie: Trie = Trie(),
 ) {
 
-  private def addToIndex(documentId: Int, document: IndexedSeq[(Int, Array[String])]) =
-    document.foldLeft(invertedIndex)((acc, line) => {
-      val (lineNumber, words) = line
-      words.foldLeft(acc)((index, word) => {
-        val wordOccurences = index.getOrElse(word, Map())
-        val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
-        val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
-        index + (word -> documentAndLinePair)
-      })
-    })
-
-  private def addToTrie(document: IndexedSeq[(Int, Array[String])]): Trie =
-    document.foldLeft(indexesTrie)(_ ++ _._2)
-
   def ingestFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
     val documentId = documents.size // Using the size of the documents map as an incremental counter
-    val sanitizedDoc =
-      document.map({ case (nb, line) => (nb, LineSanitizing.lineToWords(line)) })
-    this.copy(
-      documents=documents + (documentId -> ((filename, document.map(_._2)))),
-      invertedIndex=addToIndex(documentId, sanitizedDoc),
-      indexesTrie=addToTrie(sanitizedDoc),
-    )
+    val newDocuments = documents + (documentId -> ((filename, document.map(_._2))))
+    val withNewDocument = this.copy(documents=newDocuments)
+    document.foldLeft(withNewDocument)((lucene, line) => {
+      val (lineNumber, lineString) = line
+      LineSanitizing.lineToWords(lineString).foldLeft(lucene)((acc, word) => {
+        val wordOccurences = acc.invertedIndex.getOrElse(word, Map())
+        val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
+        val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
+        val newIndex = acc.invertedIndex + (word -> documentAndLinePair)
+        val newTrie = acc.indexesTrie + word
+        acc.copy(invertedIndex=newIndex, indexesTrie=newTrie)
+      })
+    })
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
