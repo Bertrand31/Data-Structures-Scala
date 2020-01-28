@@ -1,12 +1,15 @@
 package data_structures
 
+import scala.collection.immutable.ArraySeq
 import cats.implicits._
 
 final case class Lucene(
   private val documents: Map[Int, (String, IndexedSeq[String])] = Map(),
-  private val invertedIndex: Map[String, Map[Int, Vector[Int]]] = Map(),
+  private val invertedIndex: Map[String, Map[Int, ArraySeq[Int]]] = Map(),
   private val indexesTrie: Trie = Trie(),
 ) {
+
+  import ArraySeqMonoid._
 
   def ingestFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
@@ -16,23 +19,23 @@ final case class Lucene(
     document.foldLeft(withNewDocument)((lucene, line) => {
       val (lineNumber, lineString) = line
       val words = LineSanitizing.lineToWords(lineString)
-      val newTrie = indexesTrie ++ words
-      val newIndex = words.foldLeft(invertedIndex)((index, word) => {
+      val newTrie = lucene.indexesTrie ++ words
+      val newIndex = words.foldLeft(lucene.invertedIndex)((index, word) => {
         val wordOccurences = index.getOrElse(word, Map())
-        val currentMatches = wordOccurences.getOrElse(documentId, Vector()) :+ lineNumber
+        val currentMatches = wordOccurences.getOrElse(documentId, ArraySeq()) :+ lineNumber
         val documentAndLinePair = wordOccurences + (documentId -> currentMatches)
         index + (word -> documentAndLinePair)
       })
-    lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
+      lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
     })
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
 
-  def searchWord(word: String): Map[Int, Vector[Int]] =
+  def searchWord(word: String): Map[Int, ArraySeq[Int]] =
     invertedIndex.getOrElse(word.toLowerCase, Map())
 
-  def searchPrefix(prefix: String): Map[Int, Vector[Int]] =
+  def searchPrefix(prefix: String): Map[Int, ArraySeq[Int]] =
     indexesTrie
       .keysWithPrefix(prefix)
       .map(searchWord)
@@ -40,7 +43,7 @@ final case class Lucene(
 
   import Console._
 
-  private def printResults: Map[Int, Vector[Int]] => Unit =
+  private def printResults: Map[Int, ArraySeq[Int]] => Unit =
     _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val (documentName, lines) = documents(documentId)
