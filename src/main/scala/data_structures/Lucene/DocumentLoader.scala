@@ -4,15 +4,15 @@ import scala.io.Source
 
 object DocumentLoader {
 
-  private val BaseDirectory = "src/main/scala/data_structures/Lucene/documents"
+  private val BaseDirectory = "src/main/resources"
 
-  def loadDocument(filename: String): Iterator[String] =
+  def loadDocument(documentId: Int): Iterator[String] =
     Source
-      .fromFile(s"$BaseDirectory/$filename")
+      .fromFile(s"$BaseDirectory/${documentId.toString}")
       .getLines
 
-  def loadDocumentWithLinesNumbers(filename: String): IndexedSeq[(Int, String)] = {
-    val lines = loadDocument(filename).toArray
+  def loadDocumentWithLinesNumbers(documentId: Int): IndexedSeq[(Int, String)] = {
+    val lines = loadDocument(documentId).toArray
     (1 to lines.length) zip lines
   }
 }

@@ -24,9 +24,10 @@ final case class Lucene(
     lucene.copy(invertedIndex=newIndex, indexesTrie=newTrie)
   }
 
-  def ingestFile(filename: String): Lucene = {
-    val document = DocumentLoader.loadDocumentWithLinesNumbers(filename)
-    val documentId = this.documents.size // Using the size of the documents map as a counter ID
+  def ingestFile(path: String): Lucene = {
+    val documentId = FilesManagement.storeDocument(path)
+    val document = DocumentLoader.loadDocumentWithLinesNumbers(documentId)
+    val filename = path.split('/').last
     document
       .foldLeft(this)(ingestLine(documentId))
       .copy(documents=this.documents + (documentId -> filename))
@@ -49,7 +50,7 @@ final case class Lucene(
     _.foreach(matchTpl => {
       val (documentId, linesMatches) = matchTpl
       val filename = documents(documentId)
-      val lines = DocumentLoader.loadDocument(filename).take(linesMatches.max).toArray
+      val lines = DocumentLoader.loadDocument(documentId).take(linesMatches.max).toArray
       println(s"\n${GREEN}${BOLD}$filename:${RESET}")
       linesMatches.distinct.foreach(line => {
         println(s"${YELLOW}$line${RESET}: ${lines(line - 1)}")
@@ -63,7 +64,12 @@ final case class Lucene(
 
 object LuceneTest extends App {
 
-  val lucene = Lucene() ingestFiles Seq("damysos.md", "loremipsum.txt")
+  val lucene = Lucene().ingestFiles(
+    Seq(
+      "src/main/scala/data_structures/Lucene/documents/damysos.md",
+      "src/main/scala/data_structures/Lucene/documents/loremipsum.txt",
+    )
+  )
   lucene searchAndShow "foo"
   lucene searchPrefixAndShow "sim"
 }
