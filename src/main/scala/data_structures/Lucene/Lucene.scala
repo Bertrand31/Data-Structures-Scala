@@ -26,11 +26,11 @@ final case class Lucene(
 
   def ingestFile(filename: String): Lucene = {
     val document = DocumentLoader.loadDocument(filename)
-    val documentId = documents.size // Using the size of the documents map as an incremental counter
-    val newDocuments = documents + (documentId -> ((filename, document.map(_._2))))
+    val documentId = this.documents.size // Using the size of the documents map as a counter ID
+    val documentTuple = (filename, document.map(_._2))
     document
       .foldLeft(this)(ingestLine(documentId))
-      .copy(documents=newDocuments)
+      .copy(documents=this.documents + (documentId -> documentTuple))
   }
 
   def ingestFiles: IterableOnce[String] => Lucene = _.iterator.foldLeft(this)(_ ingestFile _)
