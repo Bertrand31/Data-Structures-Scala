@@ -6,11 +6,15 @@ case class BitSet(words: Array[Long]) {
 
   import BitSet.getWordIndex
 
-  private def addToWord(nb: Long, wordIndex: Int): Array[Long] =
-    this.words.updated(wordIndex, this.words(wordIndex) | (1L << nb - (wordIndex.toLong << 6L)))
+  private def addToWord(nb: Long, wordIndex: Int): Array[Long] = {
+    val updatedWord = this.words(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
+    this.words.updated(wordIndex, updatedWord)
+  }
 
-  private def removeFromWord(nb: Long, wordIndex: Int): Array[Long] =
-    this.words.updated(wordIndex, this.words(wordIndex) & (~1L << nb))
+  private def removeFromWord(nb: Long, wordIndex: Int): Array[Long] = {
+    val updatedWord = this.words(wordIndex) & (~1L << nb)
+    this.words.updated(wordIndex, updatedWord)
+  }
 
   def +(number: Long): BitSet =
     BitSet(this.addToWord(number, getWordIndex(number)))
@@ -57,4 +61,5 @@ object BitSetTests extends App {
   val sample = (0 until 1000).map(_ => between(0, 2000).toLong).distinct
   val bsWithData = bs ++ sample
   assert(bsWithData.toArray.toList.sorted == sample.sorted)
+  assert(bsWithData.cardinality === sample.length)
 }
