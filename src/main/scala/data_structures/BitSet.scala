@@ -2,36 +2,59 @@ package data_structures
 
 import cats.implicits._
 
-case class BitSet(nb: Long = 0) {
+case class BitSet(words: Array[Long]) {
+
+  import BitSet.getWordIndex
+
+  private def addToWord(nb: Long, wordIndex: Int): Array[Long] =
+    this.words.updated(wordIndex, this.words(wordIndex) | (1L << nb - (wordIndex.toLong << 6L)))
+
+  private def removeFromWord(nb: Long, wordIndex: Int): Array[Long] =
+    this.words.updated(wordIndex, this.words(wordIndex) & (~1L << nb))
 
   def +(number: Long): BitSet =
-    BitSet(this.nb | (1L << number))
+    BitSet(this.addToWord(number, getWordIndex(number)))
 
   def `++`: IterableOnce[Long] => BitSet =
     _.iterator.foldLeft(this)(_ + _)
 
   def -(number: Long): BitSet =
-    BitSet(this.nb & (~(1L << number)))
+    BitSet(this.removeFromWord(number, getWordIndex(number)))
 
-  def member(number: Long): Boolean =
-    (this.nb & (~(1L << number))) =!= this.nb
+  def member(number: Long): Boolean = {
+    val word = words(getWordIndex(number))
+    (word & (~(1L << number))) =!= word
+  }
 
-  def toIndexedSeq: IndexedSeq[Int] =
-    this.nb
-      .toBinaryString
-      .reverse
-      .zip(Iterator from 0)
-      .collect({ case ('1', index) => index })
+  def toArray: Array[Long] =
+    (this.words zip Iterator.from(0)).flatMap({
+      case (word, wordIndex) =>
+        word
+          .toBinaryString
+          .reverse
+          .zip(Iterator from 0)
+          .collect({ case ('1', index) => index + 0L.max(wordIndex.toLong << 6L) })
+    })
 
   def cardinality: Int =
-    this.nb.toBinaryString.count(_ === '1')
+    this.words
+      .map(_.toBinaryString.count(_ === '1'))
+      .sum
+}
+
+object BitSet {
+
+  def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
+
+  def apply(maxSize: Int): BitSet = new BitSet(new Array[Long](getWordIndex(maxSize) + 1))
 }
 
 object BitSetTests extends App {
 
-  val bs = BitSet() + 62
-  assert(bs.member(62))
-  assert(!bs.member(64))
-  assert(bs.cardinality === 1)
-  assert(bs.toIndexedSeq == IndexedSeq(62))
+  import scala.util.Random.between
+
+  val bs = BitSet(2000)
+  val sample = (0 until 1000).map(_ => between(0, 2000).toLong).distinct
+  val bsWithData = bs ++ sample
+  assert(bsWithData.toArray.toList.sorted == sample.sorted)
 }
