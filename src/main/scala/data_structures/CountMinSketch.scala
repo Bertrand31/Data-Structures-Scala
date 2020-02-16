@@ -9,9 +9,9 @@ final case class CountMinSketch[A](
   isEmpty: Boolean = true,
 ) {
 
-  private def hashFunctions: LazyList[String => Int] =
+  private def hashFunctions: Iterator[String => Int] =
     (1 to sketch.length)
-      .to(LazyList)
+      .iterator
       .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % sketch.head.length)
 
   def +(item: A): CountMinSketch[A] = {
