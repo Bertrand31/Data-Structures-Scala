@@ -44,6 +44,9 @@ case class BitSet(words: Array[Long]) {
     this.words
       .map(_.toBinaryString.count(_ === '1'))
       .sum
+
+  def isEmpty: Boolean =
+    this.words.forall(_ === 0)
 }
 
 object BitSet {
@@ -51,15 +54,4 @@ object BitSet {
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
 
   def apply(maxSize: Int): BitSet = new BitSet(new Array[Long](getWordIndex(maxSize) + 1))
-}
-
-object BitSetTests extends App {
-
-  import scala.util.Random.between
-
-  val bs = BitSet(2000)
-  val sample = (0 until 1000).map(_ => between(0, 2000).toLong).distinct
-  val bsWithData = bs ++ sample
-  assert(bsWithData.toArray.toList.sorted == sample.sorted)
-  assert(bsWithData.cardinality === sample.length)
 }
