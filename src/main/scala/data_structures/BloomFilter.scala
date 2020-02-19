@@ -17,8 +17,10 @@ case class BloomFilter[A](
   private def makeHashFn(salt: Int): String => Int =
     (stringHash(_: String, hashSeed |+| salt)) >>> abs >>> (_ % maxSize)
 
-  private lazy val hashFunctions: LazyList[String => Int] =
-    (1 to numberOfHashFunctions).to(LazyList).map(makeHashFn)
+  private lazy val hashFunctions: Iterator[String => Int] =
+    (1 to numberOfHashFunctions)
+      .iterator
+      .map(makeHashFn)
 
   def +(item: A): BloomFilter[A] = {
     val itemString = item.toString
