@@ -60,7 +60,7 @@ object BloomFilter {
     BloomFilter(
       nbOfItems=nbOfItems,
       falsePositiveProbability=falsePositiveProbability,
-      bitset=BitSet(maxSize),
+      bitset=BitSet(),
       maxSize=maxSize,
       numberOfHashFunctions=getNumberOfHashFunctions(nbOfItems, maxSize),
       hashSeed=scala.util.Random.nextInt,

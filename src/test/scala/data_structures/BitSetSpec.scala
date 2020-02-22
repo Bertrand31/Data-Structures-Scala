@@ -8,7 +8,7 @@ class BitSetSpec extends AnyFlatSpec {
 
   behavior of "the apply method"
 
-  val empty = BitSet(1000)
+  val empty = BitSet()
 
   it should "create an emty bitset" in {
 
@@ -34,11 +34,19 @@ class BitSetSpec extends AnyFlatSpec {
     assert(emptied.isEmpty)
   }
 
+  behavior of "the cardinality method"
+
+  it should "return the correct number of inserted integers" in {
+
+    val bs = BitSet() + 511
+    assert(bs.cardinality === 1)
+  }
+
   behavior of "the toArray method"
 
   it should "restitute the inserted numbers" in {
 
-    val bs = BitSet(2000)
+    val bs = BitSet()
     val sample = (0 until 1000).map(_ => scala.util.Random.between(0, 2000).toLong).distinct
     val bsWithData = bs ++ sample
     assert(bsWithData.toArray.toList.sorted == sample.sorted)

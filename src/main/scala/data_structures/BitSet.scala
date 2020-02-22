@@ -2,16 +2,15 @@ package data_structures
 
 import cats.implicits._
 
-case class BitSet(words: Array[Long]) {
+case class BitSet(words: Array[Long] = Array(0)) {
 
   import BitSet._
 
   private def addToWord(nb: Long, wordIndex: Int): Array[Long] = {
     val newWords = {
       val overflow = (wordIndex + 1) - this.words.size
-      if (overflow > 0) {
-        this.words ++ new Array[Long](overflow)
-      } else this.words
+      if (overflow > 0) this.words ++ new Array[Long](overflow)
+      else this.words
     }
     val updatedWord = newWords(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
     newWords.updated(wordIndex, updatedWord)
@@ -59,11 +58,9 @@ object BitSet {
   private val LongBits = Long.MaxValue.toBinaryString.length
 
   def countOnes(number: Long): Int =
-    (0 until LongBits).count(shift =>
+    (0 to LongBits).count(shift =>
       (number & ~(1L << shift)) =!= number
     )
 
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
-
-  def apply(maxSize: Int = 0): BitSet = new BitSet(new Array[Long](getWordIndex(maxSize) + 1))
 }
