@@ -21,7 +21,7 @@ class BitSetSpec extends AnyFlatSpec {
 
     val withThree = empty + 3
     assert(!withThree.isEmpty)
-    assert(withThree member 3)
+    assert(withThree contains 3)
   }
 
   behavior of "the remove (-) method"
@@ -30,7 +30,7 @@ class BitSetSpec extends AnyFlatSpec {
 
     val withThree = empty + 3
     val emptied = withThree - 3
-    assert(!emptied.member(3))
+    assert(!emptied.contains(3))
     assert(emptied.isEmpty)
   }
 

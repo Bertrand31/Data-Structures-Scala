@@ -1,6 +1,5 @@
 package data_structures
 
-import scala.collection.BitSet
 import scala.util.hashing.MurmurHash3.stringHash
 import Math.{abs, ceil, log, pow, round}
 import cats.implicits._
@@ -37,7 +36,7 @@ case class BloomFilter[A](
   lazy val approxNumberOfItems: Int = {
     val totalBits = maxSize.toDouble
     round(
-      (-totalBits / numberOfHashFunctions.toDouble) * log((1D - (bitset.size.toDouble / totalBits)))
+      (-totalBits / numberOfHashFunctions.toDouble) * log((1D - (bitset.cardinality.toDouble / totalBits)))
     ).toInt
   }
 
@@ -61,7 +60,7 @@ object BloomFilter {
     BloomFilter(
       nbOfItems=nbOfItems,
       falsePositiveProbability=falsePositiveProbability,
-      bitset=BitSet(),
+      bitset=BitSet(maxSize),
       maxSize=maxSize,
       numberOfHashFunctions=getNumberOfHashFunctions(nbOfItems, maxSize),
       hashSeed=scala.util.Random.nextInt,
