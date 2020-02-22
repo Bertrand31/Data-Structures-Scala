@@ -31,11 +31,12 @@ final case class CountMinSketch[A](
 
   def occurences(item: A): Int = {
     val str = item.toString
-    hashFunctions
-      .map(_(str))
-      .zip(this.sketch)
-      .map({ case (hash, row) => row(hash) }) // Still a lazy list at this point
-      .min // This forces the evaluation
+    val (hash, row) =
+      hashFunctions
+        .map(_(str))
+        .zip(this.sketch)
+        .minBy({ case (hash, row) => row(hash) }) // Still a lazy list at this point
+    row(hash)
   }
 }
 
