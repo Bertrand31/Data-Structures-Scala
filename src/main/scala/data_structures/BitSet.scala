@@ -7,13 +7,20 @@ case class BitSet(words: Array[Long]) {
   import BitSet._
 
   private def addToWord(nb: Long, wordIndex: Int): Array[Long] = {
-    val updatedWord = this.words(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
-    this.words.updated(wordIndex, updatedWord)
+    val newWords = {
+      val overflow = (wordIndex + 1) - this.words.size
+      if (overflow > 0) {
+        this.words ++ new Array[Long](overflow)
+      } else this.words
+    }
+    val updatedWord = newWords(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
+    newWords.updated(wordIndex, updatedWord)
   }
 
   private def removeFromWord(nb: Long, wordIndex: Int): Array[Long] = {
     val updatedWord = this.words(wordIndex) & (~1L << nb)
-    this.words.updated(wordIndex, updatedWord)
+    val newWords = this.words.updated(wordIndex, updatedWord)
+    newWords.head +: newWords.tail.takeWhile(_ =!= 0)
   }
 
   def +(number: Long): BitSet =
@@ -58,5 +65,5 @@ object BitSet {
 
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
 
-  def apply(maxSize: Int): BitSet = new BitSet(new Array[Long](getWordIndex(maxSize) + 1))
+  def apply(maxSize: Int = 0): BitSet = new BitSet(new Array[Long](getWordIndex(maxSize) + 1))
 }
