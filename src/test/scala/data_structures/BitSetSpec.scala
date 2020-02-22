@@ -44,4 +44,13 @@ class BitSetSpec extends AnyFlatSpec {
     assert(bsWithData.toArray.toList.sorted == sample.sorted)
     assert(bsWithData.cardinality === sample.length)
   }
+
+  behavior of "the countOnes method"
+
+  it should "return the number of 1s in the binary representation of a number" in {
+
+    List(3, 8, 1871, 1848).foreach(nb =>
+      assert(BitSet.countOnes(nb) === nb.toBinaryString.count(_ === '1'))
+    )
+  }
 }

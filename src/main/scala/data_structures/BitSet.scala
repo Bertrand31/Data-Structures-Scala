@@ -4,7 +4,7 @@ import cats.implicits._
 
 case class BitSet(words: Array[Long]) {
 
-  import BitSet.getWordIndex
+  import BitSet._
 
   private def addToWord(nb: Long, wordIndex: Int): Array[Long] = {
     val updatedWord = this.words(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
@@ -26,7 +26,7 @@ case class BitSet(words: Array[Long]) {
     BitSet(this.removeFromWord(number, getWordIndex(number)))
 
   def contains(number: Long): Boolean = {
-    val word = words(getWordIndex(number))
+    val word = this.words(getWordIndex(number))
     (word & (~(1L << number))) =!= word
   }
 
@@ -40,13 +40,6 @@ case class BitSet(words: Array[Long]) {
           .collect({ case ('1', index) => index + 0L.max(wordIndex.toLong << 6L) })
     })
 
-  private val LongBits = Long.MaxValue.toBinaryString.length
-
-  private def countOnes(number: Long): Int =
-    (0 until LongBits).count(shift =>
-      (number & ~(1L << shift)) =!= number
-    )
-
   def cardinality: Int =
     this.words.map(countOnes).sum
 
@@ -55,6 +48,13 @@ case class BitSet(words: Array[Long]) {
 }
 
 object BitSet {
+
+  private val LongBits = Long.MaxValue.toBinaryString.length
+
+  def countOnes(number: Long): Int =
+    (0 until LongBits).count(shift =>
+      (number & ~(1L << shift)) =!= number
+    )
 
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
 
