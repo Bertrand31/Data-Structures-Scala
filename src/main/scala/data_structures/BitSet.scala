@@ -6,30 +6,32 @@ case class BitSet(words: Array[Long] = Array(0)) {
 
   import BitSet._
 
-  private def addToWord(nb: Long, wordIndex: Int): Array[Long] = {
+  type Words = Array[Long]
+
+  private def addToWord(nb: Long, wordIndex: Int, words: Words): Words = {
     val newWords = {
-      val overflow = (wordIndex + 1) - this.words.size
-      if (overflow > 0) this.words ++ new Array[Long](overflow)
-      else this.words
+      val overflow = (wordIndex + 1) - words.size
+      if (overflow > 0) words ++ new Array[Long](overflow)
+      else words
     }
     val updatedWord = newWords(wordIndex) | (1L << nb - (wordIndex.toLong << 6L))
     newWords.updated(wordIndex, updatedWord)
   }
 
-  private def removeFromWord(nb: Long, wordIndex: Int): Array[Long] = {
-    val updatedWord = this.words(wordIndex) & (~1L << nb)
-    val newWords = this.words.updated(wordIndex, updatedWord)
+  private def removeFromWord(nb: Long, wordIndex: Int, words: Words): Words = {
+    val updatedWord = words(wordIndex) & (~1L << nb)
+    val newWords = words.updated(wordIndex, updatedWord)
     newWords.head +: newWords.tail.takeWhile(_ =!= 0)
   }
 
   def +(number: Long): BitSet =
-    BitSet(this.addToWord(number, getWordIndex(number)))
+    BitSet(this.addToWord(number, getWordIndex(number), words))
 
   def `++`: IterableOnce[Long] => BitSet =
     _.iterator.foldLeft(this)(_ + _)
 
   def -(number: Long): BitSet =
-    BitSet(this.removeFromWord(number, getWordIndex(number)))
+    BitSet(this.removeFromWord(number, getWordIndex(number), words))
 
   def contains(number: Long): Boolean = {
     val word = this.words(getWordIndex(number))
@@ -37,14 +39,12 @@ case class BitSet(words: Array[Long] = Array(0)) {
   }
 
   def toArray: Array[Long] =
-    (this.words zip Iterator.from(0)).flatMap({
+    this.words.zip(Iterator from 0) flatMap {
       case (word, wordIndex) =>
-        word
-          .toBinaryString
-          .reverse
-          .zip(Iterator from 0)
-          .collect({ case ('1', index) => index + 0L.max(wordIndex.toLong << 6L) })
-    })
+        (0 to LongBits)
+          .filter(bit => (word & ~(1L << bit)) =!= word)
+          .map(_ + (wordIndex.toLong << 6L))
+    }
 
   def cardinality: Int =
     this.words.map(countOnes).sum
