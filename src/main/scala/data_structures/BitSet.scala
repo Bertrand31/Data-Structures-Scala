@@ -7,6 +7,7 @@ case class BitSet(words: Array[Long] = Array(0)) {
   import BitSet._
 
   def +(number: Long): BitSet = {
+    require(number >= 0, "Bitset element must be >= 0")
     val wordIndex = getWordIndex(number)
     val newWords = {
       val overflow = (wordIndex + 1) - words.size
@@ -21,6 +22,7 @@ case class BitSet(words: Array[Long] = Array(0)) {
     _.iterator.foldLeft(this)(_ + _)
 
   def -(number: Long): BitSet = {
+    require(number >= 0, "Bitset element must be >= 0")
     val wordIndex = getWordIndex(number)
     val updatedWord = words(wordIndex) & (~1L << number)
     val newWords = words.updated(wordIndex, updatedWord)
