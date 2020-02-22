@@ -25,7 +25,7 @@ case class BitSet(words: Array[Long]) {
   def -(number: Long): BitSet =
     BitSet(this.removeFromWord(number, getWordIndex(number)))
 
-  def member(number: Long): Boolean = {
+  def contains(number: Long): Boolean = {
     val word = words(getWordIndex(number))
     (word & (~(1L << number))) =!= word
   }
@@ -40,10 +40,15 @@ case class BitSet(words: Array[Long]) {
           .collect({ case ('1', index) => index + 0L.max(wordIndex.toLong << 6L) })
     })
 
+  private val LongBits = Long.MaxValue.toBinaryString.length
+
+  private def countOnes(number: Long): Int =
+    (0 until LongBits).count(shift =>
+      (number & ~(1L << shift)) =!= number
+    )
+
   def cardinality: Int =
-    this.words
-      .map(_.toBinaryString.count(_ === '1'))
-      .sum
+    this.words.map(countOnes).sum
 
   def isEmpty: Boolean =
     this.words.forall(_ === 0)
