@@ -7,8 +7,8 @@ sealed trait HashArrayMappedTrie[+A]
 final case class Leaf[A](values: IndexedSeq[A]) extends HashArrayMappedTrie[A]
 
 final case class Node[A](
-  bitSet: Simple32BitSet = Simple32BitSet(),
-  children: IndexedSeq[HashArrayMappedTrie[A]] = IndexedSeq[HashArrayMappedTrie[A]](),
+  bitset: Simple32BitSet = Simple32BitSet(),
+  children: Array[HashArrayMappedTrie[A]] = new Array[HashArrayMappedTrie[A]](0),
 ) extends HashArrayMappedTrie[A] {
 
   private val StepBits = 5
@@ -29,7 +29,7 @@ final case class Node[A](
     def descendAndAdd(steps: List[Int], current: Node[A]): Node[A] =
       steps match {
         case head +: Nil => {
-          val (position, isSet) = current.bitSet.getPosition(head)
+          val (position, isSet) = current.bitset.getPosition(head)
           if (isSet) {
             val newChildren = current.children(position) match {
               case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
@@ -38,12 +38,12 @@ final case class Node[A](
             current.copy(children=newChildren)
           } else {
             val newChildren = (current.children.take(position - 1) :+ Leaf(IndexedSeq(item))) ++ current.children.drop(position)
-            val newBitSet = current.bitSet + head
-            current.copy(children=newChildren, bitSet=newBitSet)
+            val newBitSet = current.bitset + head
+            current.copy(children=newChildren, bitset=newBitSet)
           }
         }
         case head +: tail => {
-          val (position, isSet) = current.bitSet.getPosition(head)
+          val (position, isSet) = current.bitset.getPosition(head)
           if (isSet) {
             current.children(position) match {
               case node: Node[A] => {
@@ -55,8 +55,8 @@ final case class Node[A](
           } else {
             val newChild = descendAndAdd(tail, Node())
             val newChildren = (current.children.take(position - 1) :+ newChild) ++ current.children.drop(position)
-            val newBitSet = current.bitSet + head
-            current.copy(children=newChildren, bitSet=newBitSet)
+            val newBitSet = current.bitset + head
+            current.copy(children=newChildren, bitset=newBitSet)
           }
         }
       }
@@ -67,7 +67,7 @@ final case class Node[A](
   private def internalContains(elem: A, steps: List[Int], current: Node[A]): Boolean =
     steps match {
       case head +: Nil => {
-        val (position, isSet) = current.bitSet.getPosition(head)
+        val (position, isSet) = current.bitset.getPosition(head)
         if (!isSet) false
         else {
           current.children(position) match {
@@ -77,7 +77,7 @@ final case class Node[A](
         }
       }
       case head +: tail => {
-        val (position, isSet) = current.bitSet.getPosition(head)
+        val (position, isSet) = current.bitset.getPosition(head)
         if (!isSet) false
         else {
           current.children(position) match {
@@ -102,7 +102,6 @@ object HamtApp extends App {
 
   val hamt = Node[Int]()
   val hamtWithD = hamt + 5
-  println(hamtWithD)
   println(hamtWithD contains 5)
   println(hamtWithD contains 6)
 }
