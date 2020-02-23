@@ -1,12 +1,13 @@
 package data_structures.hamt
 
+import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
 
 sealed trait HashArrayMappedTrie[+A]
 
-final case class Leaf[A](values: IndexedSeq[A]) extends HashArrayMappedTrie[A]
+final case class Leaf[A: ClassTag](values: Array[A]) extends HashArrayMappedTrie[A]
 
-final case class Node[A](
+final case class Node[A: ClassTag](
   bitset: Simple32BitSet = Simple32BitSet(),
   children: Array[HashArrayMappedTrie[A]] = new Array[HashArrayMappedTrie[A]](0),
 ) extends HashArrayMappedTrie[A] {
@@ -30,11 +31,12 @@ final case class Node[A](
         if (isSet) {
           val newChildren = current.children(position) match {
             case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
-            case _ => current.children.updated(position, Leaf(IndexedSeq(item)))
+            case _ => current.children.updated(position, Leaf(Array(item)))
           }
           current.copy(children=newChildren)
         } else {
-          val newChildren = (current.children.take(position - 1) :+ Leaf(IndexedSeq(item))) ++ current.children.drop(position)
+          val (front, back) = current.children.splitAt(position)
+          val newChildren = (front :+ Leaf(Array(item))) ++ back
           val newBitSet = current.bitset + head
           current.copy(children=newChildren, bitset=newBitSet)
         }
@@ -52,7 +54,8 @@ final case class Node[A](
           }
         } else {
           val newChild = descendAndAdd(item, tail, Node())
-          val newChildren = (current.children.take(position - 1) :+ newChild) ++ current.children.drop(position)
+          val (front, back) = current.children.splitAt(position)
+          val newChildren = (front :+ newChild) ++ back
           val newBitSet = current.bitset + head
           current.copy(children=newChildren, bitset=newBitSet)
         }
@@ -90,7 +93,7 @@ final case class Node[A](
 
 object HashArrayMappedTrie {
 
-  def apply[A](initialItems: A*): Node[A] = Node() ++ initialItems
+  def apply[A: ClassTag](initialItems: A*): Node[A] = Node() ++ initialItems
 }
 
 object HamtApp extends App {
