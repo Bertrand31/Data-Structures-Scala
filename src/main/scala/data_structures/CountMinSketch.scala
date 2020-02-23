@@ -21,10 +21,7 @@ final case class CountMinSketch[A](
       this.sketch
         .zip(hashes)
         .map({ case (row, hash) => row.updated(hash, row(hash) + 1) })
-    this.copy(
-      sketch=newSketch,
-      isEmpty=false,
-    )
+    this.copy(sketch=newSketch, isEmpty=false)
   }
 
   def ++(items: IterableOnce[A]): CountMinSketch[A] = items.iterator.foldLeft(this)(_ + _)

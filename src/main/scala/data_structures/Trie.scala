@@ -2,7 +2,7 @@ package data_structures
 
 final case class Trie(
   private val children: Array[Option[Trie]],
-  private val isFinal: Boolean
+  private val isFinal: Boolean,
 ) {
 
   private def getIndexesFromString: String => Seq[Int] =
