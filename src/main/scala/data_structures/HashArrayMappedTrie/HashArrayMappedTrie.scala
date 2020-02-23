@@ -98,7 +98,11 @@ object HashArrayMappedTrie {
 
 object HamtApp extends App {
 
-  val hamt = HashArrayMappedTrie[Int](5)
-  println(hamt contains 5)
-  println(hamt contains 6)
+  val hamt = HashArrayMappedTrie(0, 5, 32, 512)
+  assert(hamt.contains(0))
+  assert(hamt.contains(5))
+  assert(!hamt.contains(6))
+  assert(!hamt.contains(31))
+  assert(hamt.contains(32))
+  assert(hamt.contains(512))
 }
