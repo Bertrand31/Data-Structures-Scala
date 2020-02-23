@@ -13,9 +13,10 @@ final case class Simple32BitSet(bitset: Int = 0) {
     (bitset & (~(1 << number))) =!= bitset
 
   def getPosition(number: Int): (Int, Boolean) = {
-    val leftmostBits = bitset.toBinaryString.reverse.take(number + 1)
-    val isSet = leftmostBits.last === '1'
-    val position = leftmostBits.init.count(_ === '1')
+    val binaryString = bitset.toBinaryString
+    val rightmostBits = binaryString.drop(binaryString.size - number + 1)
+    val isSet = rightmostBits.head === '1'
+    val position = rightmostBits.tail.count(_ === '1')
     (position, isSet)
   }
 
