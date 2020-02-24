@@ -24,18 +24,21 @@ case class BitSet(words: Array[Long] = Array(0)) {
   def -(number: Long): BitSet = {
     require(number >= 0, "Bitset element must be >= 0")
     val wordIndex = getWordIndex(number)
-    val updatedWord = words(wordIndex) & (~1L << number)
-    val newWords = words.updated(wordIndex, updatedWord)
-    BitSet(newWords.head +: newWords.tail.takeWhile(_ =!= 0))
+    words.lift(wordIndex) match {
+      case None => this
+      case Some(word) =>
+        val updatedWord = word & (~1L << number)
+        val newWords = words.updated(wordIndex, updatedWord)
+        BitSet(newWords.head +: newWords.tail.takeWhile(_ =!= 0))
+    }
   }
 
-  def contains(number: Long): Boolean = {
-    val word = this.words(getWordIndex(number))
-    (word & (~(1L << number))) =!= word
-  }
+  def contains(number: Long): Boolean =
+    this.words.lift(getWordIndex(number))
+      .fold(false)(word => (word & (~(1L << number))) =!= word)
 
   def toArray: Array[Long] =
-    this.words.zip(Iterator from 0) flatMap {
+    this.words.zipWithIndex flatMap {
       case (word, wordIndex) =>
         (0 to LongBits)
           .filter(bit => (word & ~(1L << bit)) =!= word)
@@ -43,7 +46,7 @@ case class BitSet(words: Array[Long] = Array(0)) {
     }
 
   def cardinality: Int =
-    this.words.map(countOnes).sum
+    this.words.foldLeft(0)(_ + countOnes(_))
 
   def isEmpty: Boolean =
     this.words.forall(_ === 0)
