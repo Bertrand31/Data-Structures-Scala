@@ -111,7 +111,11 @@ final case class Node[A: ClassTag, B: ClassTag](
     else None
   }
 
-  def get(key: A): Option[B] = getPair(key, getPath(key.toString), this).map(_._2)
+  def get(key: A): Option[B] =
+    getPair(key, getPath(key.toString), this).map(_._2)
+
+  def getOrElse(key: A, default: => B): B =
+    getPair(key, getPath(key.toString), this).fold(default)(_._2)
 
   def has(key: A): Boolean = getPair(key, getPath(key.toString), this).isDefined
 
@@ -131,6 +135,8 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def map[C: ClassTag, D: ClassTag](fn: ((A, B)) => (C, D)): Node[C, D] =
     HashArrayMappedTrie(this.view.map(fn))
+
+  def foreach(fn: ((A, B)) => Unit): Unit = this.view.foreach(fn)
 
   def keys: View[A] = this.view.map(_._1)
 
