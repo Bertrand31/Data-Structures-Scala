@@ -129,7 +129,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def toArray: Array[(A, B)] = this.view.toArray
 
-  def map[C: ClassTag, D: ClassTag](fn: ((A, B)) => ((C, D))): Node[C, D] =
+  def map[C: ClassTag, D: ClassTag](fn: ((A, B)) => (C, D)): Node[C, D] =
     HashArrayMappedTrie(this.view.map(fn))
 
   def keys: View[A] = this.view.map(_._1)
