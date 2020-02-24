@@ -31,7 +31,7 @@ final case class Node[A: ClassTag](
         if (isSet) {
           val newChildren = current.children(position) match {
             case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
-            case _ => current.children.updated(position, Leaf(Array(item)))
+            case _ => current.children.updated(position, Leaf(Array(item))) // Cannot happen
           }
           current.copy(children=newChildren)
         } else {
@@ -64,6 +64,8 @@ final case class Node[A: ClassTag](
 
   def +(item: A): Node[A] = descendAndAdd(item, getPath(item.toString), this)
 
+  def `++`: IterableOnce[A] => Node[A] = _.iterator.foldLeft(this)(_ + _)
+
   private def internalContains(elem: A, steps: List[Int], current: Node[A]): Boolean =
     steps match {
       case head +: Nil => {
@@ -72,7 +74,7 @@ final case class Node[A: ClassTag](
         else
           current.children(position) match {
             case Leaf(values) => values.contains(elem)
-            case _ => false
+            case _ => false // Cannot happen
           }
       }
       case head +: tail => {
@@ -81,14 +83,12 @@ final case class Node[A: ClassTag](
         else
           current.children(position) match {
             case node: Node[A] => internalContains(elem, tail, node)
-            case _ => false
+            case _ => false // Cannot happen
           }
       }
     }
 
   def contains(elem: A): Boolean = internalContains(elem, getPath(elem.toString), this)
-
-  def `++`: IterableOnce[A] => Node[A] = _.iterator.foldLeft(this)(_ + _)
 }
 
 object HashArrayMappedTrie {

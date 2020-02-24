@@ -3,6 +3,7 @@ package data_structures.hamt
 import cats.implicits._
 
 final case class Simple32BitSet(bitset: Int = 0) {
+
   def +(number: Int): Simple32BitSet =
     Simple32BitSet(bitset | (1 << number))
 
