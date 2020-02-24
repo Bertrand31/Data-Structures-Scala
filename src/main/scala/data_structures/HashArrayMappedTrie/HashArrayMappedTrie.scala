@@ -1,13 +1,12 @@
 package data_structures.hamt
 
-import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
 final case class Leaf[A, B](values: Array[(A, B)]) extends HashArrayMappedTrie[A, B]
 
-final case class Node[A: ClassTag, B](
+final case class Node[A, B](
   bitset: Simple32BitSet = Simple32BitSet(),
   children: Array[HashArrayMappedTrie[A, B]] = new Array[HashArrayMappedTrie[A, B]](0),
 ) extends HashArrayMappedTrie[A, B] {
@@ -96,7 +95,7 @@ final case class Node[A: ClassTag, B](
 
 object HashArrayMappedTrie {
 
-  def apply[A: ClassTag, B](initialItems: (A, B)*): Node[A, B] = Node() ++ initialItems
+  def apply[A, B](initialItems: (A, B)*): Node[A, B] = Node() ++ initialItems
 }
 
 object HamtApp extends App {
