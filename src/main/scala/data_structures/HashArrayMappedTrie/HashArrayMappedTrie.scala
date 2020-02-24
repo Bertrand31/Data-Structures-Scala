@@ -112,6 +112,14 @@ final case class Node[A: ClassTag, B: ClassTag](
   def keys: View[A] = this.view.map(_._1)
 
   def values: View[B] = this.view.map(_._2)
+
+  def count(predicate: ((A, B)) => Boolean): Int = this.view.count(predicate)
+
+  def countValues(predicate: B => Boolean): Int = this.values.count(predicate)
+
+  def find(predicate: ((A, B)) => Boolean): Option[(A, B)] = this.view.find(predicate)
+
+  def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
 }
 
 object HashArrayMappedTrie {
