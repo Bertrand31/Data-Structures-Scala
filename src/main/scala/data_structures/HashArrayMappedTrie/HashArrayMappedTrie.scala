@@ -8,12 +8,12 @@ import ArrayUtils._
 sealed trait HashArrayMappedTrie[+A, +B]
 
 final case class Leaf[A: ClassTag, B: ClassTag](
-  values: Array[(A, B)],
+  private val values: Array[(A, B)],
 ) extends HashArrayMappedTrie[A, B]
 
 final case class Node[A: ClassTag, B: ClassTag](
-  bitset: Simple32BitSet = Simple32BitSet(),
-  children: Array[HashArrayMappedTrie[A, B]] = new Array[HashArrayMappedTrie[A, B]](0),
+  private val bitset: Simple32BitSet = Simple32BitSet(),
+  private val children: Array[HashArrayMappedTrie[A, B]] = new Array[HashArrayMappedTrie[A, B]](0),
 ) extends HashArrayMappedTrie[A, B] {
 
   private val StepBits = 5
