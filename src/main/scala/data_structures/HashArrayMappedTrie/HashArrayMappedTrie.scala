@@ -2,10 +2,13 @@ package data_structures.hamt
 
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
+import scala.collection.View
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
-final case class Leaf[A: ClassTag, B: ClassTag](values: Array[(A, B)]) extends HashArrayMappedTrie[A, B]
+final case class Leaf[A: ClassTag, B: ClassTag](
+  values: Array[(A, B)],
+) extends HashArrayMappedTrie[A, B]
 
 final case class Node[A: ClassTag, B: ClassTag](
   bitset: Simple32BitSet = Simple32BitSet(),
@@ -98,15 +101,17 @@ final case class Node[A: ClassTag, B: ClassTag](
       case (acc, Leaf(values)) => acc + values.size
     })
 
-  def toArray: Array[(A, B)] =
-    this.children.flatMap({
-      case node: Node[A, B] => node.toArray
+  def view: View[(A, B)] =
+    this.children.view.flatMap({
+      case node: Node[A, B] => node.view
       case Leaf(values) => values
     })
 
-  def keys: Array[A] = toArray.map(_._1)
+  def toArray: Array[(A, B)] = this.view.toArray
 
-  def values: Array[B] = toArray.map(_._2)
+  def keys: View[A] = this.view.map(_._1)
+
+  def values: View[B] = this.view.map(_._2)
 }
 
 object HashArrayMappedTrie {
