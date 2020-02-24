@@ -7,15 +7,20 @@ import ArrayUtils._
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
-final private case class Leaf[A: ClassTag, B: ClassTag](
+final case class Leaf[A: ClassTag, B: ClassTag](
   private val values: Array[(A, B)],
 ) extends HashArrayMappedTrie[A, B] {
 
   def +(item: (A, B)): Leaf[A, B] = Leaf(this.values :+ item)
 
-  def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot(_._1 == key))
+  def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot({ case (k, _) => k == key }))
 
   def isEmpty: Boolean = this.values.isEmpty
+}
+
+object Leaf {
+
+  def apply[A: ClassTag, B: ClassTag](items: (A, B)*): Leaf[A, B] = Leaf(Array(items:_*))
 }
 
 final case class Node[A: ClassTag, B: ClassTag](
@@ -46,7 +51,7 @@ final case class Node[A: ClassTag, B: ClassTag](
       current.copy(children=newChildren)
     } else
       if (tail.isEmpty) {
-        val newChildren = current.children.insertAt(position, Leaf(Array(item)))
+        val newChildren = current.children.insertAt(position, Leaf(item))
         val newBitSet = current.bitset + head
         current.copy(children=newChildren, bitset=newBitSet)
       } else {
@@ -100,7 +105,7 @@ final case class Node[A: ClassTag, B: ClassTag](
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet)
       current.children(position) match {
-        case Leaf(values) => values.find(_._1 == key)
+        case Leaf(values) => values.find({ case (k, _) => k == key })
         case node: Node[A, B] => getPair(key, tail, node)
       }
     else None
@@ -124,6 +129,9 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def toArray: Array[(A, B)] = this.view.toArray
 
+  def map[C: ClassTag, D: ClassTag](fn: ((A, B)) => ((C, D))): Node[C, D] =
+    HashArrayMappedTrie(this.view.map(fn))
+
   def keys: View[A] = this.view.map(_._1)
 
   def values: View[B] = this.view.map(_._2)
@@ -142,5 +150,8 @@ final case class Node[A: ClassTag, B: ClassTag](
 object HashArrayMappedTrie {
 
   def apply[A: ClassTag, B: ClassTag](initialItems: (A, B)*): Node[A, B] =
+    Node[A, B]() ++ initialItems
+
+  def apply[A: ClassTag, B: ClassTag](initialItems: IterableOnce[(A, B)]): Node[A, B] =
     Node[A, B]() ++ initialItems
 }
