@@ -7,9 +7,16 @@ import ArrayUtils._
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
-final case class Leaf[A: ClassTag, B: ClassTag](
+final private case class Leaf[A: ClassTag, B: ClassTag](
   private val values: Array[(A, B)],
-) extends HashArrayMappedTrie[A, B]
+) extends HashArrayMappedTrie[A, B] {
+
+  def +(item: (A, B)): Leaf[A, B] = Leaf(this.values :+ item)
+
+  def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot(_._1 == key))
+
+  def isEmpty: Boolean = this.values.isEmpty
+}
 
 final case class Node[A: ClassTag, B: ClassTag](
   private val bitset: Simple32BitSet = Simple32BitSet(),
@@ -33,11 +40,8 @@ final case class Node[A: ClassTag, B: ClassTag](
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet) {
       val newChildren = current.children(position) match {
-        case Leaf(values) =>
-          current.children.updated(position, Leaf(values :+ item))
-        case node: Node[A, B] =>
-          val newChild = descendAndAdd(item, tail, node)
-          current.children.updated(position, newChild)
+        case leaf: Leaf[A, B] => current.children.updated(position, leaf + item)
+        case node: Node[A, B] => current.children.updated(position, descendAndAdd(item, tail, node))
       }
       current.copy(children=newChildren)
     } else
@@ -62,14 +66,14 @@ final case class Node[A: ClassTag, B: ClassTag](
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet) {
       current.children(position) match {
-        case Leaf(values) =>
-          val newValues = values.filterNot(_._1 == key)
-          if (newValues.isEmpty) {
+        case leaf: Leaf[A, B] =>
+          val newLeaf = leaf - key
+          if (newLeaf.isEmpty) {
             val newChildren = current.children.removeAt(position)
             val newBitset = current.bitset - head
             current.copy(children=newChildren, bitset=newBitset)
           } else {
-            val newChildren = current.children.updated(position, Leaf(newValues))
+            val newChildren = current.children.updated(position, newLeaf)
             current.copy(children=newChildren)
           }
         case node: Node[A, B] =>
