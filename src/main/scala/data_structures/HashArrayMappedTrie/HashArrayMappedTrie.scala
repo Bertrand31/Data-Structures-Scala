@@ -91,6 +91,12 @@ final case class Node[A, B](
 
   def has(key: A): Boolean = getPair(key, getPath(key.toString), this).isDefined
 
+  def size: Int =
+    this.children.foldLeft(0)({
+      case (acc, node: Node[A, B]) => acc + node.size
+      case (acc, Leaf(values)) => acc + values.size
+    })
+
   def toArray: Array[(A, B)] =
     this.children.flatMap({
       case node: Node[A, B] => node.toArray
