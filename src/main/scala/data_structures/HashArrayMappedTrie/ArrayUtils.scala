@@ -10,5 +10,8 @@ object ArrayUtils {
       val (front, back) = arr.splitAt(index)
       (front :+ elem) ++ back
     }
+
+    def removeAt(index: Int): Array[A] =
+      arr.take(index) ++ arr.drop(index + 1)
   }
 }
