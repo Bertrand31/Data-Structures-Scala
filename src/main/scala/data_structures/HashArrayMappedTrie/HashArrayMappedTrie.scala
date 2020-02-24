@@ -66,30 +66,32 @@ final case class Node[A: ClassTag, B](
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
-  private def internalHas(key: A, steps: List[Int], current: Node[A, B]): Boolean =
+  private def getPair(key: A, steps: List[Int], current: Node[A, B]): Option[(A, B)] =
     steps match {
       case head +: Nil => {
         val (position, isSet) = current.bitset.getPosition(head)
-        if (!isSet) false
+        if (!isSet) None
         else
           current.children(position) match {
-            case Leaf(values) => values.exists(_._1 == key)
-            case _ => false // Cannot happen
+            case Leaf(values) => values.find(_._1 == key)
+            case _ => None // Cannot happen
           }
       }
       case head +: tail => {
         val (position, isSet) = current.bitset.getPosition(head)
         println((position, isSet))
-        if (!isSet) false
+        if (!isSet) None
         else
           current.children(position) match {
-            case node: Node[A, B] => internalHas(key, tail, node)
-            case _ => false // Cannot happen
+            case node: Node[A, B] => getPair(key, tail, node)
+            case _ => None // Cannot happen
           }
       }
     }
 
-  def has(key: A): Boolean = internalHas(key, getPath(key.toString), this)
+  def get(key: A): Option[B] = getPair(key, getPath(key.toString), this).map(_._2)
+
+  def has(key: A): Boolean = getPair(key, getPath(key.toString), this).isDefined
 }
 
 object HashArrayMappedTrie {
@@ -106,4 +108,5 @@ object HamtApp extends App {
   assert(!hamt.has(31))
   assert(hamt.has(32))
   assert(hamt.has(512))
+  assert(hamt.get(512).get == "test")
 }
