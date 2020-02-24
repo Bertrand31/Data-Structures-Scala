@@ -20,4 +20,6 @@ final case class Simple32BitSet(bitset: Int = 0) {
 
   def getPosition(number: Int): (Int, Boolean) =
     (countOnesUpTo(number), contains(number))
+
+  def isEmpty: Boolean = this.bitset === 0
 }
