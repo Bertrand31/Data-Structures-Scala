@@ -3,6 +3,7 @@ package data_structures.hamt
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
 import scala.collection.View
+import ArrayUtils._
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
@@ -38,8 +39,7 @@ final case class Node[A: ClassTag, B: ClassTag](
           }
           current.copy(children=newChildren)
         } else {
-          val (front, back) = current.children.splitAt(position)
-          val newChildren = (front :+ Leaf(Array(item))) ++ back
+          val newChildren = current.children.insertAt(position, Leaf(Array(item)))
           val newBitSet = current.bitset + head
           current.copy(children=newChildren, bitset=newBitSet)
         }
@@ -57,8 +57,7 @@ final case class Node[A: ClassTag, B: ClassTag](
           }
         } else {
           val newChild = descendAndAdd(item, tail, Node())
-          val (front, back) = current.children.splitAt(position)
-          val newChildren = (front :+ newChild) ++ back
+          val newChildren = current.children.insertAt(position, newChild)
           val newBitSet = current.bitset + head
           current.copy(children=newChildren, bitset=newBitSet)
         }
