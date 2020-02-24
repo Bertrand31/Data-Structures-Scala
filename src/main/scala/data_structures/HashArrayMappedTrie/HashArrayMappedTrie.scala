@@ -130,6 +130,8 @@ final case class Node[A: ClassTag, B: ClassTag](
   def find(predicate: ((A, B)) => Boolean): Option[(A, B)] = this.view.find(predicate)
 
   def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
+
+  def isEmpty: Boolean = this.bitset.isEmpty
 }
 
 object HashArrayMappedTrie {
