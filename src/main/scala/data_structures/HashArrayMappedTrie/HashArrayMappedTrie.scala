@@ -57,6 +57,39 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
+  private def descendAndRemove(key: A, steps: List[Int], current: Node[A, B]): Node[A, B] = {
+    val head +: tail = steps
+    val (position, isSet) = current.bitset.getPosition(head)
+    if (isSet) {
+      current.children(position) match {
+        case Leaf(values) =>
+          val newValues = values.filterNot(_._1 == key)
+          if (newValues.isEmpty) {
+            val newChildren = current.children.removeAt(position)
+            val newBitset = current.bitset - head
+            current.copy(children=newChildren, bitset=newBitset)
+          } else {
+            val newChildren = current.children.updated(position, Leaf(newValues))
+            current.copy(children=newChildren)
+          }
+        case node: Node[A, B] =>
+          val newChild = descendAndRemove(key, tail, node)
+          if (newChild.bitset.isEmpty) {
+            val newChildren = current.children.removeAt(position)
+            val newBitset = current.bitset - head
+            current.copy(children=newChildren, bitset=newBitset)
+          } else {
+            val newChildren = current.children.updated(position, newChild)
+            current.copy(children=newChildren)
+          }
+      }
+    } else current
+  }
+
+  def -(key: A): Node[A, B] = descendAndRemove(key, getPath(key.toString), this)
+
+  def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
+
   private def getPair(key: A, steps: List[Int], current: Node[A, B]): Option[(A, B)] = {
     val head +: tail = steps
     val (position, isSet) = current.bitset.getPosition(head)
@@ -119,4 +152,6 @@ object HamtApp extends App {
   assert(hamt.has(512))
   assert(hamt.get(512).get == "test")
   assert(hamt.toArray.toList == List((32, "baz"), (64, "fool"), (0, "foo"), (5, "bar"), (512, "test")))
+  val hamtWithoutFive = hamt - 5
+  assert(!hamtWithoutFive.has(5))
 }
