@@ -140,21 +140,3 @@ object HashArrayMappedTrie {
   def apply[A: ClassTag, B: ClassTag](initialItems: (A, B)*): Node[A, B] =
     Node[A, B]() ++ initialItems
 }
-
-object HamtApp extends App {
-
-  val hamt = HashArrayMappedTrie(
-    (0 -> "foo"),
-    (64 -> "fool"),
-  ) + (512 -> "test") ++ Seq((5 -> "bar"), (32 -> "baz"))
-  assert(hamt.has(0))
-  assert(hamt.has(5))
-  assert(!hamt.has(6))
-  assert(!hamt.has(31))
-  assert(hamt.has(32))
-  assert(hamt.has(512))
-  assert(hamt.get(512).get == "test")
-  assert(hamt.toArray.toList == List((32, "baz"), (64, "fool"), (0, "foo"), (5, "bar"), (512, "test")))
-  val hamtWithoutFive = hamt - 5
-  assert(!hamtWithoutFive.has(5))
-}
