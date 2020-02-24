@@ -30,7 +30,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   private val StepBits = 5
 
-  private def getPath: String => List[Int] =
+  private def getPath: String => Iterator[Int] =
     stringHash(_)
       .toBinaryString
       .reverse
@@ -38,24 +38,23 @@ final case class Node[A: ClassTag, B: ClassTag](
       .sliding(StepBits, StepBits)
       .map(_.unwrap)
       .map(Integer.parseInt(_, 2))
-      .toList
 
-  private def descendAndAdd(item: (A, B), steps: List[Int], current: Node[A, B]): Node[A, B] = {
-    val head +: tail = steps
+  private def descendAndAdd(item: (A, B), steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
+    val head = steps.next
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet) {
       val newChildren = current.children(position) match {
         case leaf: Leaf[A, B] => current.children.updated(position, leaf + item)
-        case node: Node[A, B] => current.children.updated(position, descendAndAdd(item, tail, node))
+        case node: Node[A, B] => current.children.updated(position, descendAndAdd(item, steps, node))
       }
       current.copy(children=newChildren)
     } else
-      if (tail.isEmpty) {
+      if (!steps.hasNext) {
         val newChildren = current.children.insertAt(position, Leaf(item))
         val newBitSet = current.bitset + head
         current.copy(children=newChildren, bitset=newBitSet)
       } else {
-        val newChild = descendAndAdd(item, tail, Node())
+        val newChild = descendAndAdd(item, steps, Node())
         val newChildren = current.children.insertAt(position, newChild)
         val newBitSet = current.bitset + head
         current.copy(children=newChildren, bitset=newBitSet)
@@ -66,8 +65,8 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
-  private def descendAndRemove(key: A, steps: List[Int], current: Node[A, B]): Node[A, B] = {
-    val head +: tail = steps
+  private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
+    val head = steps.next
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet) {
       current.children(position) match {
@@ -82,7 +81,7 @@ final case class Node[A: ClassTag, B: ClassTag](
             current.copy(children=newChildren)
           }
         case node: Node[A, B] =>
-          val newChild = descendAndRemove(key, tail, node)
+          val newChild = descendAndRemove(key, steps, node)
           if (newChild.bitset.isEmpty) {
             val newChildren = current.children.removeAt(position)
             val newBitset = current.bitset - head
@@ -100,13 +99,13 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
-  private def getPair(key: A, steps: List[Int], current: Node[A, B]): Option[(A, B)] = {
-    val head +: tail = steps
+  private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
+    val head = steps.next
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet)
       current.children(position) match {
         case Leaf(values) => values.find({ case (k, _) => k == key })
-        case node: Node[A, B] => getPair(key, tail, node)
+        case node: Node[A, B] => getPair(key, steps, node)
       }
     else None
   }
