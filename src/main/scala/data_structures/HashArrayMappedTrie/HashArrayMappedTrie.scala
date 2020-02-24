@@ -77,15 +77,11 @@ final case class Node[A: ClassTag, B: ClassTag](
           }
         case node: Node[A, B] =>
           val newChild = descendAndRemove(key, steps, node)
-          if (newChild.bitset.isEmpty) {
-            val newChildren = current.children.removeAt(position)
-            val newBitset = current.bitset - head
-            current.copy(children=newChildren, bitset=newBitset)
-          } else {
-            val newChildren = current.children.updated(position, newChild)
-            val newBitset = current.bitset - head
-            current.copy(children=newChildren, bitset=newBitset)
-          }
+          val newChildren =
+            if (newChild.bitset.isEmpty) current.children.removeAt(position)
+            else current.children.updated(position, newChild)
+          val newBitset = current.bitset - head
+          current.copy(children=newChildren, bitset=newBitset)
       }
     } else current
   }
