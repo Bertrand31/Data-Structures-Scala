@@ -1,8 +1,8 @@
 package data_structures.hamt
 
+import scala.collection.View
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
-import scala.collection.View
 import ArrayUtils._
 
 sealed trait HashArrayMappedTrie[+A, +B]
@@ -16,11 +16,6 @@ final case class Leaf[A: ClassTag, B: ClassTag](
   def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot({ case (k, _) => k == key }))
 
   def isEmpty: Boolean = this.values.isEmpty
-}
-
-object Leaf {
-
-  def apply[A: ClassTag, B: ClassTag](items: (A, B)*): Leaf[A, B] = Leaf(Array(items:_*))
 }
 
 final case class Node[A: ClassTag, B: ClassTag](
@@ -159,4 +154,9 @@ object HashArrayMappedTrie {
 
   def apply[A: ClassTag, B: ClassTag](initialItems: (A, B)*): Node[A, B] =
     HashArrayMappedTrie(initialItems)
+}
+
+object Leaf {
+
+  def apply[A: ClassTag, B: ClassTag](items: (A, B)*): Leaf[A, B] = Leaf(Array(items:_*))
 }
