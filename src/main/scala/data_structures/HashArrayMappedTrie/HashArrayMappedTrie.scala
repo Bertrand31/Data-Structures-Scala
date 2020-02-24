@@ -33,14 +33,14 @@ final case class Node[A: ClassTag, B: ClassTag](
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet) {
       val newChildren = current.children(position) match {
-        case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
-        case node: Node[A, B] => {
+        case Leaf(values) =>
+          current.children.updated(position, Leaf(values :+ item))
+        case node: Node[A, B] =>
           val newChild = descendAndAdd(item, tail, node)
           current.children.updated(position, newChild)
-        }
       }
       current.copy(children=newChildren)
-    } else {
+    } else
       if (tail.isEmpty) {
         val newChildren = current.children.insertAt(position, Leaf(Array(item)))
         val newBitSet = current.bitset + head
@@ -51,34 +51,22 @@ final case class Node[A: ClassTag, B: ClassTag](
         val newBitSet = current.bitset + head
         current.copy(children=newChildren, bitset=newBitSet)
       }
-    }
   }
 
   def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1.toString), this)
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
-  private def getPair(key: A, steps: List[Int], current: Node[A, B]): Option[(A, B)] =
-    steps match {
-      case head +: Nil => {
-        val (position, isSet) = current.bitset.getPosition(head)
-        if (!isSet) None
-        else
-          current.children(position) match {
-            case Leaf(values) => values.find(_._1 == key)
-            case _ => None // Cannot happen
-          }
+  private def getPair(key: A, steps: List[Int], current: Node[A, B]): Option[(A, B)] = {
+    val head +: tail = steps
+    val (position, isSet) = current.bitset.getPosition(head)
+    if (isSet)
+      current.children(position) match {
+        case Leaf(values) => values.find(_._1 == key)
+        case node: Node[A, B] => getPair(key, tail, node)
       }
-      case head +: tail => {
-        val (position, isSet) = current.bitset.getPosition(head)
-        if (!isSet) None
-        else
-          current.children(position) match {
-            case node: Node[A, B] => getPair(key, tail, node)
-            case _ => None // Cannot happen
-          }
-      }
-    }
+    else None
+  }
 
   def get(key: A): Option[B] = getPair(key, getPath(key.toString), this).map(_._2)
 
