@@ -28,41 +28,31 @@ final case class Node[A: ClassTag, B: ClassTag](
       .map(Integer.parseInt(_, 2))
       .toList
 
-  private def descendAndAdd(item: (A, B), steps: List[Int], current: Node[A, B]): Node[A, B] =
-    steps match {
-      case head +: Nil => {
-        val (position, isSet) = current.bitset.getPosition(head)
-        if (isSet) {
-          val newChildren = current.children(position) match {
-            case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
-            case _ => current.children.updated(position, Leaf(Array(item))) // Cannot happen
-          }
-          current.copy(children=newChildren)
-        } else {
-          val newChildren = current.children.insertAt(position, Leaf(Array(item)))
-          val newBitSet = current.bitset + head
-          current.copy(children=newChildren, bitset=newBitSet)
+  private def descendAndAdd(item: (A, B), steps: List[Int], current: Node[A, B]): Node[A, B] = {
+    val head +: tail = steps
+    val (position, isSet) = current.bitset.getPosition(head)
+    if (isSet) {
+      val newChildren = current.children(position) match {
+        case Leaf(values) => current.children.updated(position, Leaf(values :+ item))
+        case node: Node[A, B] => {
+          val newChild = descendAndAdd(item, tail, node)
+          current.children.updated(position, newChild)
         }
       }
-      case head +: tail => {
-        val (position, isSet) = current.bitset.getPosition(head)
-        if (isSet) {
-          current.children(position) match {
-            case node: Node[A, B] => {
-              val newChild = descendAndAdd(item, tail, node)
-              val newChildren = current.children.updated(position, newChild)
-              current.copy(children=newChildren)
-            }
-            case _ => current // Cannot happen
-          }
-        } else {
-          val newChild = descendAndAdd(item, tail, Node())
-          val newChildren = current.children.insertAt(position, newChild)
-          val newBitSet = current.bitset + head
-          current.copy(children=newChildren, bitset=newBitSet)
-        }
+      current.copy(children=newChildren)
+    } else {
+      if (tail.isEmpty) {
+        val newChildren = current.children.insertAt(position, Leaf(Array(item)))
+        val newBitSet = current.bitset + head
+        current.copy(children=newChildren, bitset=newBitSet)
+      } else {
+        val newChild = descendAndAdd(item, tail, Node())
+        val newChildren = current.children.insertAt(position, newChild)
+        val newBitSet = current.bitset + head
+        current.copy(children=newChildren, bitset=newBitSet)
       }
     }
+  }
 
   def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1.toString), this)
 
