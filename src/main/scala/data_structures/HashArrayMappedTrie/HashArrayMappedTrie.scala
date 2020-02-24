@@ -78,7 +78,6 @@ final case class Node[A, B](
       }
       case head +: tail => {
         val (position, isSet) = current.bitset.getPosition(head)
-        println((position, isSet))
         if (!isSet) None
         else
           current.children(position) match {
@@ -91,6 +90,12 @@ final case class Node[A, B](
   def get(key: A): Option[B] = getPair(key, getPath(key.toString), this).map(_._2)
 
   def has(key: A): Boolean = getPair(key, getPath(key.toString), this).isDefined
+
+  def toArray: Array[(A, B)] =
+    this.children.flatMap({
+      case node: Node[A, B] => node.toArray
+      case Leaf(values) => values
+    })
 }
 
 object HashArrayMappedTrie {
@@ -100,7 +105,10 @@ object HashArrayMappedTrie {
 
 object HamtApp extends App {
 
-  val hamt = HashArrayMappedTrie((0 -> "foo"), (5 -> "bar"), (32 -> "baz"), (512 -> "test"))
+  val hamt = HashArrayMappedTrie(
+    (0 -> "foo"),
+    (64 -> "fool"),
+  ) + (512 -> "test") ++ Seq((5 -> "bar"), (32 -> "baz"))
   assert(hamt.has(0))
   assert(hamt.has(5))
   assert(!hamt.has(6))
@@ -108,4 +116,5 @@ object HamtApp extends App {
   assert(hamt.has(32))
   assert(hamt.has(512))
   assert(hamt.get(512).get == "test")
+  assert(hamt.toArray.toList == List((32, "baz"), (64, "fool"), (0, "foo"), (5, "bar"), (512, "test")))
 }
