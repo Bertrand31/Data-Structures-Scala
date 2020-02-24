@@ -80,7 +80,8 @@ final case class Node[A: ClassTag, B: ClassTag](
             current.copy(children=newChildren, bitset=newBitset)
           } else {
             val newChildren = current.children.updated(position, newChild)
-            current.copy(children=newChildren)
+            val newBitset = current.bitset - head
+            current.copy(children=newChildren, bitset=newBitset)
           }
       }
     } else current
