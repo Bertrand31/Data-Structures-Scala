@@ -11,9 +11,13 @@ final case class Leaf[A: ClassTag, B: ClassTag](
   private val values: Array[(A, B)],
 ) extends HashArrayMappedTrie[A, B] {
 
+  private def hasKey(key: A): ((A, B)) => Boolean = _._1 == key
+
   def +(item: (A, B)): Leaf[A, B] = Leaf(this.values :+ item)
 
-  def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot({ case (k, _) => k == key }))
+  def -(key: A): Leaf[A, B] = Leaf(this.values.filterNot(hasKey(key)))
+
+  def findKey(key: A): Option[(A, B)] = this.values.find(hasKey(key))
 
   def isEmpty: Boolean = this.values.isEmpty
 }
@@ -95,7 +99,7 @@ final case class Node[A: ClassTag, B: ClassTag](
     val (position, isSet) = current.bitset.getPosition(head)
     if (isSet)
       current.children(position) match {
-        case Leaf(values) => values.find({ case (k, _) => k == key })
+        case leaf: Leaf[A, B] => leaf.findKey(key)
         case node: Node[A, B] => getPair(key, steps, node)
       }
     else None
