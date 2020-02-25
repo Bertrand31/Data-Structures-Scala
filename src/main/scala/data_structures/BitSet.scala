@@ -29,7 +29,7 @@ case class BitSet(words: Array[Long] = Array(0)) {
       case Some(word) =>
         val updatedWord = word & (~1L << number)
         val newWords = words.updated(wordIndex, updatedWord)
-        BitSet(newWords.head +: newWords.tail.takeWhile(_ =!= 0))
+        BitSet(newWords.head +: newWords.tail.takeWhile(_ > 0))
     }
   }
 
@@ -62,4 +62,8 @@ object BitSet {
     )
 
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
+
+  def apply(initialItems: IterableOnce[Long]): BitSet = BitSet() ++ initialItems
+
+  def apply(numbers: Long*): BitSet = BitSet(numbers)
 }

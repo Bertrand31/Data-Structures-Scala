@@ -33,14 +33,14 @@ case class BloomFilter[A](
     hashFunctions.forall(bitset contains _(itemString))
   }
 
-  lazy val approxNumberOfItems: Int = {
+  def approxNumberOfItems: Int = {
     val totalBits = maxSize.toDouble
     round(
       (-totalBits / numberOfHashFunctions.toDouble) * log((1D - (bitset.cardinality.toDouble / totalBits)))
     ).toInt
   }
 
-  lazy val isEmpty: Boolean = bitset.isEmpty
+  def isEmpty: Boolean = bitset.isEmpty
 }
 
 object BloomFilter {
