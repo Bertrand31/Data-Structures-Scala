@@ -29,12 +29,11 @@ final case class Leaf[A: ClassTag, B: ClassTag](
   def remove(word: Int): Leaf[A, B] = {
     val (position, isSet) = this.bitset.getPosition(word)
     if (!isSet) this
-    else {
+    else
       Leaf(
         bitset = this.bitset - word,
         values = this.values.removeAt(position),
       )
-    }
   }
 
   def isEmpty: Boolean = this.bitset.isEmpty
@@ -139,13 +138,13 @@ final case class Node[A: ClassTag, B: ClassTag](
   def size: Int =
     this.children.foldLeft(0)({
       case (acc, node: Node[A, B]) => acc + node.size
-      case (acc, Leaf(_, values)) => acc + values.size
+      case (acc, Leaf(_, values))  => acc + values.size
     })
 
   def view: View[(A, B)] =
     this.children.view.flatMap({
       case node: Node[A, B] => node.view
-      case Leaf(_, values) => values
+      case Leaf(_, values)  => values
     })
 
   def toArray: Array[(A, B)] = this.view.toArray
