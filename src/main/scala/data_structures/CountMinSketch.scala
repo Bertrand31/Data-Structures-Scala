@@ -32,7 +32,7 @@ final case class CountMinSketch[A](
       hashFunctions
         .map(_(str))
         .zip(this.sketch)
-        .minBy({ case (hash, row) => row(hash) }) // Still a lazy list at this point
+        .minBy({ case (hash, row) => row(hash) })
     row(hash)
   }
 }
