@@ -46,8 +46,8 @@ final case class Node[A: ClassTag, B: ClassTag](
   private def getPath(str: String): Iterator[Int] = makePathFromHash(stringHash(str))
 
   private def descendAndAdd(item: (A, B), steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
-    val head = steps.next
-    val (position, isSet) = current.bitset.getPosition(head)
+    val currentStep = steps.next
+    val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet) {
       val newChildren = current.children(position) match {
         case leaf: Leaf[A, B] => current.children.updated(position, leaf + item)
@@ -57,12 +57,12 @@ final case class Node[A: ClassTag, B: ClassTag](
     } else
       if (!steps.hasNext) {
         val newChildren = current.children.insertAt(position, Leaf(item))
-        val newBitSet = current.bitset + head
+        val newBitSet = current.bitset + currentStep
         current.copy(children=newChildren, bitset=newBitSet)
       } else {
         val newChild = descendAndAdd(item, steps, Node())
         val newChildren = current.children.insertAt(position, newChild)
-        val newBitSet = current.bitset + head
+        val newBitSet = current.bitset + currentStep
         current.copy(children=newChildren, bitset=newBitSet)
       }
   }
@@ -72,15 +72,15 @@ final case class Node[A: ClassTag, B: ClassTag](
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
   private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
-    val head = steps.next
-    val (position, isSet) = current.bitset.getPosition(head)
+    val currentStep = steps.next
+    val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet) {
       current.children(position) match {
         case leaf: Leaf[A, B] =>
           val newLeaf = leaf - key
           if (newLeaf.isEmpty) {
             val newChildren = current.children.removeAt(position)
-            val newBitset = current.bitset - head
+            val newBitset = current.bitset - currentStep
             current.copy(children=newChildren, bitset=newBitset)
           } else {
             val newChildren = current.children.updated(position, newLeaf)
@@ -91,7 +91,7 @@ final case class Node[A: ClassTag, B: ClassTag](
           val newChildren =
             if (newChild.bitset.isEmpty) current.children.removeAt(position)
             else current.children.updated(position, newChild)
-          val newBitset = current.bitset - head
+          val newBitset = current.bitset - currentStep
           current.copy(children=newChildren, bitset=newBitset)
       }
     } else current
@@ -102,8 +102,8 @@ final case class Node[A: ClassTag, B: ClassTag](
   def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
   private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
-    val head = steps.next
-    val (position, isSet) = current.bitset.getPosition(head)
+    val currentStep = steps.next
+    val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet)
       current.children(position) match {
         case leaf: Leaf[A, B] => leaf.findKey(key)
