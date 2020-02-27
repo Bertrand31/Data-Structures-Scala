@@ -2,7 +2,6 @@ package data_structures.hamt
 
 import scala.collection.View
 import scala.reflect.ClassTag
-import scala.util.hashing.MurmurHash3.stringHash
 import cats.implicits._
 import ArrayUtils._
 
@@ -43,7 +42,7 @@ final case class Node[A: ClassTag, B: ClassTag](
         Integer.parseInt(newStepBinary, 2)
       })
 
-  private def getPath(str: String): Iterator[Int] = makePathFromHash(stringHash(str))
+  private def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 
   private def descendAndAdd(item: (A, B), steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
     val currentStep = steps.next
@@ -67,7 +66,7 @@ final case class Node[A: ClassTag, B: ClassTag](
       }
   }
 
-  def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1.toString), this)
+  def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1), this)
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
@@ -97,7 +96,7 @@ final case class Node[A: ClassTag, B: ClassTag](
     } else current
   }
 
-  def -(key: A): Node[A, B] = descendAndRemove(key, getPath(key.toString), this)
+  def -(key: A): Node[A, B] = descendAndRemove(key, getPath(key), this)
 
   def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
@@ -113,12 +112,12 @@ final case class Node[A: ClassTag, B: ClassTag](
   }
 
   def get(key: A): Option[B] =
-    getPair(key, getPath(key.toString), this).map(_._2)
+    getPair(key, getPath(key), this).map(_._2)
 
   def getOrElse(key: A, default: => B): B =
-    getPair(key, getPath(key.toString), this).fold(default)(_._2)
+    getPair(key, getPath(key), this).fold(default)(_._2)
 
-  def has(key: A): Boolean = getPair(key, getPath(key.toString), this).isDefined
+  def has(key: A): Boolean = getPair(key, getPath(key), this).isDefined
 
   def size: Int =
     this.children.foldLeft(0)({
