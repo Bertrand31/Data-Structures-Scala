@@ -63,9 +63,7 @@ object BitSet {
 
   def getWordIndex(nb: Long): Int = (nb >> 6L).toInt
 
-  def apply(initialItems: IterableOnce[Long]): BitSet = BitSet() ++ initialItems
+  def apply(initialItems: IterableOnce[Long]): BitSet = new BitSet ++ initialItems
 
-  def apply(numbers: Long*): BitSet = BitSet(numbers)
-
-  def apply(): BitSet = BitSet()
+  def apply(numbers: Long*): BitSet = this.apply(numbers)
 }
