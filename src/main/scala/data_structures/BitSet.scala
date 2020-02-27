@@ -66,4 +66,6 @@ object BitSet {
   def apply(initialItems: IterableOnce[Long]): BitSet = BitSet() ++ initialItems
 
   def apply(numbers: Long*): BitSet = BitSet(numbers)
+
+  def apply(): BitSet = BitSet()
 }
