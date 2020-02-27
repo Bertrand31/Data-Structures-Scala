@@ -73,8 +73,9 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
   it should "return the inserted elements" in {
 
-    val populated = HashArrayMappedTrie[Int, String]() ++ Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
-    assert(populated.toArray.mkString === "(4,bar)(3,foo)(5,baz)")
+    val values = Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
+    val populated = HashArrayMappedTrie[Int, String]() ++ values
+    assert(populated.toArray.toSeq.sorted === values.sorted)
   }
 
   behavior of "the keys method"

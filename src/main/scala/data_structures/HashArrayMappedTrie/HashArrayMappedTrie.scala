@@ -1,8 +1,10 @@
 package data_structures.hamt
 
+import scala.annotation.tailrec
 import scala.collection.View
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
+import cats.implicits._
 import ArrayUtils._
 
 sealed trait HashArrayMappedTrie[+A, +B]
@@ -27,16 +29,22 @@ final case class Node[A: ClassTag, B: ClassTag](
   private val children: Array[HashArrayMappedTrie[A, B]] = new Array[HashArrayMappedTrie[A, B]](0),
 ) extends HashArrayMappedTrie[A, B] {
 
-  private val StepBits = 5
+  private val StepBits  = 5
+  private val TrieDepth = Math.ceil(Int.MaxValue.toBinaryString.length / StepBits).toInt
 
-  private def getPath: String => Iterator[Int] =
-    stringHash(_)
-      .toBinaryString
-      .reverse
-      .toSeq
-      .sliding(StepBits, StepBits)
-      .map(_.unwrap)
-      .map(Integer.parseInt(_, 2))
+  @tailrec
+  private def makePathFromHash(hash: Int, soFar: Array[Int] = new Array(TrieDepth)): Iterator[Int] =
+    if (hash === 0) soFar.iterator
+    else {
+      val newStepBinary =
+        (0 until StepBits)
+          .map(shift => if ((hash & ~(1L << shift)) =!= hash) 1 else 0)
+          .mkString
+      val newStepNumber = Integer.parseInt(newStepBinary, 2)
+      makePathFromHash(hash >> StepBits, soFar :+ newStepNumber)
+    }
+
+  private def getPath(str: String): Iterator[Int] = makePathFromHash(stringHash(str))
 
   private def descendAndAdd(item: (A, B), steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
     val head = steps.next
