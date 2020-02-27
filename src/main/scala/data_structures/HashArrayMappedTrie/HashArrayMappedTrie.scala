@@ -1,6 +1,5 @@
 package data_structures.hamt
 
-import scala.annotation.tailrec
 import scala.collection.View
 import scala.reflect.ClassTag
 import scala.util.hashing.MurmurHash3.stringHash
@@ -32,17 +31,17 @@ final case class Node[A: ClassTag, B: ClassTag](
   private val StepBits  = 5
   private val TrieDepth = Math.ceil(Int.MaxValue.toBinaryString.length / StepBits).toInt
 
-  @tailrec
-  private def makePathFromHash(hash: Int, soFar: Array[Int] = new Array(TrieDepth)): Iterator[Int] =
-    if (hash === 0) soFar.iterator
-    else {
-      val newStepBinary =
-        (0 until StepBits)
-          .map(shift => if ((hash & ~(1L << shift)) =!= hash) 1 else 0)
-          .mkString
-      val newStepNumber = Integer.parseInt(newStepBinary, 2)
-      makePathFromHash(hash >> StepBits, soFar :+ newStepNumber)
-    }
+  private def makePathFromHash(hash: Int): Iterator[Int] =
+    (0 until TrieDepth)
+      .iterator
+      .map(chunkNumber => {
+        val number = hash >> (StepBits * chunkNumber)
+        val newStepBinary =
+          (0 until StepBits)
+            .map(shift => if ((number & ~(1L << shift)) =!= number) 1 else 0)
+            .mkString
+        Integer.parseInt(newStepBinary, 2)
+      })
 
   private def getPath(str: String): Iterator[Int] = makePathFromHash(stringHash(str))
 
