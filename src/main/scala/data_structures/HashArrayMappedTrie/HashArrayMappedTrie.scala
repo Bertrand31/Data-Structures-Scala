@@ -21,8 +21,8 @@ final case class Leaf[A: ClassTag, B: ClassTag](
   def add(word: Int, kv: (A, B)): Leaf[A, B] = {
     val (position, _) = this.bitset.getPosition(word)
     Leaf(
-      bitset = this.bitset + word,
-      values = this.values.insertAt(position, kv),
+      bitset=this.bitset + word,
+      values=this.values.insertAt(position, kv),
     )
   }
 
@@ -31,8 +31,8 @@ final case class Leaf[A: ClassTag, B: ClassTag](
     if (!isSet) this
     else
       Leaf(
-        bitset = this.bitset - word,
-        values = this.values.removeAt(position),
+        bitset=this.bitset - word,
+        values=this.values.removeAt(position),
       )
   }
 
