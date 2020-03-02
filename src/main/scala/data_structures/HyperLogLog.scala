@@ -50,7 +50,7 @@ object HyperLogLog {
 
  object HyperLogLogApp extends App {
 
-  val randNumbers = (1 to 1000).map(_ => scala.util.Random.between(1, 10))
+  val randNumbers = (1 to 100000).map(_ => scala.util.Random.between(1, 10))
   val estimatedCardinality = HyperLogLog.getCardinality(4, randNumbers.toList)
   println(estimatedCardinality)
  }
