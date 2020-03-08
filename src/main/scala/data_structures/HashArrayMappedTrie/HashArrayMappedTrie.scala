@@ -171,8 +171,10 @@ final case class Node[A: ClassTag, B: ClassTag](
 
 object HashArrayMappedTrie {
 
+  def empty[A: ClassTag, B: ClassTag]: Node[A, B] = Node()
+
   def apply[A: ClassTag, B: ClassTag](initialItems: IterableOnce[(A, B)]): Node[A, B] =
-    Node[A, B]() ++ initialItems
+    HashArrayMappedTrie.empty[A, B] ++ initialItems
 
   def apply[A: ClassTag, B: ClassTag](initialItems: (A, B)*): Node[A, B] =
     HashArrayMappedTrie(initialItems)

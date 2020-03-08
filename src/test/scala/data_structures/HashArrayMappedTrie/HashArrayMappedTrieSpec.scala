@@ -6,11 +6,11 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
   behavior of "The Hash Array Mapped Trie (HAMT) implementation"
 
-  behavior of "the apply method"
+  behavior of "the empty method"
 
   it should "create an emty HAMT" in {
 
-    val empty = HashArrayMappedTrie[Int, String]()
+    val empty = HashArrayMappedTrie.empty[Int, String]
     assert(empty.isEmpty)
   }
 
