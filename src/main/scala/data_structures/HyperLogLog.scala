@@ -11,9 +11,7 @@ import cats.implicits._
 object HyperLogLog {
 
   def numberOfLeadingZeros(number: Int): Int =
-    (31 to 0 by -1)
-      .takeWhile(shift => ((1 << shift) | number) =!= number)
-      .size
+    (31 to 0 by -1).segmentLength(shift => ((1 << shift) | number) =!= number)
 
   private def getMaxPrefixLength[A]: List[A] => Double =
     _.foldLeft(0)((acc, item) =>
@@ -42,7 +40,7 @@ object HyperLogLog {
 
  object HyperLogLogApp extends App {
 
-  val randNumbers = (1 to 100000).map(_ => scala.util.Random.between(1, 1000))
+  val randNumbers = (1 to 100000).map(_ => scala.util.Random.between(1, 100))
   val estimatedCardinality = HyperLogLog.getCardinality(4, randNumbers.toList)
   println(estimatedCardinality)
  }
