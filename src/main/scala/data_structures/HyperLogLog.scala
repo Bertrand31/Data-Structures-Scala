@@ -5,42 +5,55 @@
 package data_structures
 
 import scala.util.hashing.MurmurHash3.stringHash
-import scala.math.Ordering.Double.TotalOrdering
 import cats.implicits._
+
+case class HyperLogLog(m: Int, M: Int, counters: Array[Int]) {
+
+  def numberOfLeadingZeros(number: Int): Int =
+    ((31 - m) to 0 by -1).segmentLength(shift => ((1 << shift) | number) =!= number) + 1
+
+  // private def harmonicMean(values: Array[Int]): Double =
+    // values.size.toFloat / values.map(1F / _.toFloat).sum
+
+  private def indicator(values: Array[Int]): Double =
+    1F / (values.map(nb => Math.pow(2, -nb)).sum).toFloat
+
+  private val correctionConstant: Double =
+    M match {
+      case 16 => 0.673
+      case 32 => 0.697
+      case 64 => 0.709
+      case M  => 0.7213 / (1 + (1.079 / M))
+    }
+
+  def +[A](item: A): HyperLogLog = {
+    val x = stringHash(item.toString)
+    val bits = x.toBinaryString.reverse.padTo(32, '0').reverse
+    val counterAddress = Integer.parseInt(bits.take(m), 2)
+    val leadingZeros = numberOfLeadingZeros(Integer.parseInt(bits.drop(m), 2))
+    val newValue = this.counters(counterAddress) max leadingZeros
+    this.copy(counters=this.counters.updated(counterAddress, newValue))
+  }
+
+  def ++[A]: IterableOnce[A] => HyperLogLog = _.iterator.foldLeft(this)(_ + _)
+
+  def cardinality: Double = {
+    val mean = indicator(this.counters.filterNot(_ === 0))
+    mean * correctionConstant * Math.pow(m, 2)
+  }
+}
 
 object HyperLogLog {
 
-  def numberOfLeadingZeros(number: Int): Int =
-    (31 to 0 by -1).segmentLength(shift => ((1 << shift) | number) =!= number)
-
-  private def getMaxPrefixLength[A]: List[A] => Double =
-    _.foldLeft(0)((acc, item) =>
-      acc max numberOfLeadingZeros(Math.abs(stringHash(item.toString)))
-    )
-
-  private def powOfTwo: Double => Double = Math.pow(2, _)
-
-  private def getRegisterCardinality: List[_] => Double = getMaxPrefixLength >>> powOfTwo
-
-  private def harmonicMean(values: Iterable[Double]): Double = values.size / values.map(1 / _).sum
-
-  def getCardinality[A](bits: Int, list: List[A]): Double = {
-    val numberOfRegisters = powOfTwo(bits)
-    val registersSize = Math.ceil(list.length / numberOfRegisters).toInt
-    val registers = list.sliding(registersSize, registersSize)
-    harmonicMean(
-      registers
-        .map(getRegisterCardinality)
-        .toArray
-        .sorted
-        .take(Math.ceil(numberOfRegisters * 0.7).toInt)
-    )
+  def apply(m: Int): HyperLogLog = {
+    val M = Math.pow(2, m).toInt // Number of counters
+    val counters = new Array[Int](M)
+    HyperLogLog(m, M, counters)
   }
 }
 
  object HyperLogLogApp extends App {
 
-  val randNumbers = (1 to 100000).map(_ => scala.util.Random.between(1, 100))
-  val estimatedCardinality = HyperLogLog.getCardinality(4, randNumbers.toList)
-  println(estimatedCardinality)
+  val hll = HyperLogLog(4) ++ (1 to 100000).map(_ => scala.util.Random.between(1, 100))
+  println(hll.cardinality)
  }
