@@ -15,20 +15,20 @@ case class HyperLogLog(m: Int, M: Int, counters: Array[Int]) {
   // private def harmonicMean(values: Array[Int]): Double =
     // values.size.toFloat / values.map(1F / _.toFloat).sum
 
-  private def indicator(values: Array[Int]): Double =
-    1F / (values.map(nb => Math.pow(2, -nb)).sum).toFloat
+  private def indicator: Array[Int] => Double =
+    1 / _.map(nb => Math.pow(2, -nb)).sum
 
   private val correctionConstant: Double =
     M match {
       case 16 => 0.673
       case 32 => 0.697
       case 64 => 0.709
-      case M  => 0.7213 / (1 + (1.079 / M))
+      case M  => 0.7213D / (1D + (1.079D / M.toDouble))
     }
 
   def +[A](item: A): HyperLogLog = {
     val x = stringHash(item.toString)
-    val bits = x.toBinaryString.reverse.padTo(32, '0').reverse
+    val bits = x.toBinaryString.reverse.padTo(31, '0').reverse
     val counterAddress = Integer.parseInt(bits.take(m), 2)
     val leadingZeros = numberOfLeadingZeros(Integer.parseInt(bits.drop(m), 2))
     val newValue = this.counters(counterAddress) max leadingZeros
