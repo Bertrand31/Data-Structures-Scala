@@ -2,9 +2,9 @@ import data_structures.Utils.AugmentedArray
 
 import org.scalatest.flatspec.AnyFlatSpec
 
-class ArrayUtilsSpec extends AnyFlatSpec {
+class UtilsSpec extends AnyFlatSpec {
 
-  behavior of "The ArrayUtils array methods"
+  behavior of "The AugmentedArray array methods"
 
   behavior of "the insertAt method"
 
