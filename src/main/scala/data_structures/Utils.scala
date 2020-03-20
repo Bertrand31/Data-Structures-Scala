@@ -1,8 +1,8 @@
-package data_structures.hamt
+package data_structures
 
 import scala.reflect.ClassTag
 
-object ArrayUtils {
+object Utils {
 
   implicit class AugmentedArray[A: ClassTag](val arr: Array[A]) {
 
