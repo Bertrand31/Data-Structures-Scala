@@ -1,4 +1,4 @@
-import data_structures.hamt.ArrayUtils._
+import data_structures.Utils.AugmentedArray
 
 import org.scalatest.flatspec.AnyFlatSpec
 

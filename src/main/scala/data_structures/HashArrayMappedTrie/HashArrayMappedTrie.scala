@@ -3,7 +3,7 @@ package data_structures.hamt
 import scala.collection.View
 import scala.reflect.ClassTag
 import cats.implicits._
-import ArrayUtils._
+import data_structures.Utils.AugmentedArray
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
