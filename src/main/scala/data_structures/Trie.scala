@@ -93,6 +93,6 @@ object Trie {
   def apply(initialItems: String*): Trie =
     Trie(
       children=Array.fill[Option[Trie]](LatinAlphabetLength)(None),
-      isFinal=false
+      isFinal=false,
     ) ++ initialItems
 }
