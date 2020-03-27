@@ -10,23 +10,24 @@ final case class RadixTree(
 
   def add(chars: List[Char]): RadixTree =
     chars match {
-      case Nil => this.copy(isWord=true)
       case head +: tail => {
         val newChild = this.children.get(head) match {
           case None => new RadixTree(chunk=tail, isWord=true)
           case Some(subTree) => {
-            val commonPrefixLength = (tail zip subTree.chunk).segmentLength({ case (a, b) => a === b })
+            val commonPrefixLength =
+              (tail zip subTree.chunk).segmentLength({ case (a, b) => a === b })
+
             val (commonPrefix, rest) = tail.splitAt(commonPrefixLength)
-            val (_, oldRest) = subTree.chunk.splitAt(commonPrefixLength)
-            val newChildNewWord = subTree.children.get(rest.head) match {
-              case None => (rest.head -> new RadixTree(chunk=rest.tail, isWord=true))
-              case Some(restTree) => (rest.head -> restTree.add(rest.tail))
+            val restHead +: restTail = rest
+            val newChildNewWord = subTree.children.get(restHead) match {
+              case None => (restHead -> new RadixTree(chunk=restTail, isWord=true))
+              case Some(restTree) => (restHead -> restTree.add(restTail))
             }
-            val newChildOldWord = subTree.children.get(oldRest.head) match {
-              case None => (oldRest.head -> new RadixTree(chunk=oldRest.tail, isWord=true))
-              case Some(restTree) => (oldRest.head -> restTree.add(oldRest.tail))
-            }
-            val newChildren = subTree.children + newChildNewWord + newChildOldWord // FIXME: destructive
+
+            val oldRestHead +: oldRestTail = subTree.chunk.drop(commonPrefixLength)
+            val newK = (oldRestHead -> new RadixTree(isWord=subTree.isWord, chunk=oldRestTail, children=subTree.children))
+
+            val newChildren = Map.empty + newChildNewWord + newK
             subTree.copy(children=newChildren, chunk=commonPrefix)
           }
         }
@@ -41,14 +42,25 @@ final case class RadixTree(
             this.copy(children=newChildren)
           }
           case Some(subTree) =>
-            if (subTree.chunk.isEmpty) subTree.copy(isWord=true)
-            else subTree.copy(isWord=true).add(subTree.chunk)
+            val newChild =
+              if (subTree.chunk.isEmpty) subTree.copy(isWord=true)
+              else subTree.copy(isWord=true, chunk=List.empty).add(subTree.chunk)
+            val newChildren = this.children + (head -> newChild)
+            this.copy(children=newChildren)
         }
+      case Nil => new RadixTree(isWord=true)
     }
 
   def +(word: String): RadixTree = add(word.toList)
 
   def `++`: IterableOnce[String] => RadixTree = _.iterator.foldLeft(this)(_ + _)
+
+  def toList(soFar: String): List[String] = this.children.flatMap({
+    case (char, subTree) =>
+      val current =  (soFar :+ char) ++ subTree.chunk.mkString
+      if (subTree.isWord) current +: subTree.toList(current)
+      else subTree.toList(current)
+  }).toList
 
   def contains(chars: List[Char]): Boolean =
     chars match {
@@ -84,6 +96,8 @@ object RadixTreeTest extends App {
   println(tree)
   assert(!tree.contains("trum"))
   assert(tree.contains("trumped"))
+  assert(!tree.contains("trumpt"))
+  assert(!tree.contains("trumpd"))
   assert(tree.contains("trumpet"))
   assert(!tree.contains("trumpis"))
   assert(tree.contains("trumpistan"))
