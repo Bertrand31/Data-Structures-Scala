@@ -47,22 +47,28 @@ final case class RadixTree(
             else {
               val commonPrefixLength =
                 (tail zip subTree.chunk).segmentLength({ case (a, b) => a === b })
-
               val (commonPrefix, rest) = tail.splitAt(commonPrefixLength)
-              val restHead +: restTail = rest
-              val newChild =
-                subTree.children
-                  .get(restHead)
-                  .fold(new RadixTree(chunk=restTail, isWord=true))(_.add(restTail))
 
               val oldRest = subTree.chunk.drop(commonPrefixLength)
-              if (oldRest.isEmpty) subTree.copy(isWord=true)
-              else {
-                val oldRestHead +: oldRestTail = oldRest
-                val newK = subTree.copy(children=subTree.children, chunk=oldRestTail)
+              val oldRestHead +: oldRestTail = oldRest
+              val kek =
+                if (oldRest.isEmpty) subTree.copy(isWord=true)
+                else {
+                  val blop = subTree.copy(children=subTree.children, chunk=oldRestTail)
+                  new RadixTree(children=Map() + (oldRestHead -> blop), chunk=commonPrefix, isWord=true)
+                }
 
-                val newChildren = Map.empty + (restHead -> newChild) + (oldRestHead -> newK)
-                new RadixTree(children=newChildren, chunk=commonPrefix)
+              if (rest.isEmpty) {
+                kek
+              } else {
+                val restHead +: restTail = rest
+                val newChild =
+                  subTree.children
+                    .get(restHead)
+                    .fold(new RadixTree(chunk=restTail, isWord=true))(_.add(restTail))
+
+                val newChildren = Map.empty + (restHead -> newChild) + (oldRestHead -> kek)
+                new RadixTree(children=newChildren, chunk=commonPrefix.tail)
               }
             }
           }
@@ -75,7 +81,7 @@ final case class RadixTree(
 
   def `++`: IterableOnce[String] => RadixTree = _.iterator.foldLeft(this)(_ + _)
 
-  def toList(soFar: String): List[String] =
+  def toList(soFar: String = ""): List[String] =
     this.children
       .flatMap({
         case (char, subTree) =>
