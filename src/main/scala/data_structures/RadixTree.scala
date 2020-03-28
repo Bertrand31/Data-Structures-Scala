@@ -1,3 +1,5 @@
+// THIS IS A SCRAPPY WORK-IN-PROGRESS
+
 package data_structures
 
 import cats.implicits._
@@ -110,7 +112,7 @@ object RadixTree {
 
 object RadixTreeTest extends App {
 
-  val tree = RadixTree() ++ List("trumped", "trumpet", "trumpistan", "t")
+  val tree = RadixTree() ++ List("trumped", "trumpet", "trumpistan", "t", "tru")
   println(tree)
   assert(!tree.contains("trum"))
   assert(tree.contains("trumped"))
@@ -120,5 +122,5 @@ object RadixTreeTest extends App {
   assert(!tree.contains("trumpis"))
   assert(tree.contains("trumpistan"))
   assert(tree.contains("t"))
-  // assert(tree.contains("tru"))
+  assert(tree.contains("tru"))
 }
