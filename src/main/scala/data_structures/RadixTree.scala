@@ -43,24 +43,27 @@ final case class RadixTree(
         val newChild = this.children.get(head) match {
           case None => new RadixTree(chunk=tail, isWord=true)
           case Some(subTree) => {
-            val commonPrefixLength =
-              (tail zip subTree.chunk).segmentLength({ case (a, b) => a === b })
-
-            val (commonPrefix, rest) = tail.splitAt(commonPrefixLength)
-            val restHead +: restTail = rest
-            val newChild =
-              subTree.children
-                .get(restHead)
-                .fold(new RadixTree(chunk=restTail, isWord=true))(_.add(restTail))
-
-            val oldRest = subTree.chunk.drop(commonPrefixLength)
-            if (oldRest.isEmpty) subTree.copy(isWord=true)
+            if (subTree.chunk.isEmpty) subTree.add(tail)
             else {
-              val oldRestHead +: oldRestTail = oldRest
-              val newK = subTree.copy(children=subTree.children, chunk=oldRestTail)
+              val commonPrefixLength =
+                (tail zip subTree.chunk).segmentLength({ case (a, b) => a === b })
 
-              val newChildren = Map.empty + (restHead -> newChild) + (oldRestHead -> newK)
-              new RadixTree(children=newChildren, chunk=commonPrefix)
+              val (commonPrefix, rest) = tail.splitAt(commonPrefixLength)
+              val restHead +: restTail = rest
+              val newChild =
+                subTree.children
+                  .get(restHead)
+                  .fold(new RadixTree(chunk=restTail, isWord=true))(_.add(restTail))
+
+              val oldRest = subTree.chunk.drop(commonPrefixLength)
+              if (oldRest.isEmpty) subTree.copy(isWord=true)
+              else {
+                val oldRestHead +: oldRestTail = oldRest
+                val newK = subTree.copy(children=subTree.children, chunk=oldRestTail)
+
+                val newChildren = Map.empty + (restHead -> newChild) + (oldRestHead -> newK)
+                new RadixTree(children=newChildren, chunk=commonPrefix)
+              }
             }
           }
         }
@@ -112,15 +115,55 @@ object RadixTree {
 
 object RadixTreeTest extends App {
 
-  val tree = RadixTree() ++ List("trumped", "trumpet", "trumpistan", "t", "tru")
+  // val tree = RadixTree() ++ List("trumped", "trumpet", "trumpistan", "t", "tru")
+  val tree =
+    RadixTree(
+      chunk=List(),
+      isWord=false,
+      children=Map(
+        't' -> RadixTree(
+          chunk=List(),
+          isWord=true,
+          children=Map(
+            'r' -> RadixTree(
+              chunk=List('u', 'm', 'p'),
+              isWord=false,
+              children=Map(
+                'i' -> RadixTree(
+                  children=Map(),
+                  chunk=List('s', 't', 'a', 'n'),
+                  isWord=true,
+                ),
+                'e' -> RadixTree(
+                  chunk=List(),
+                  isWord=false,
+                  children=Map(
+                    't' -> RadixTree(
+                      children=Map(),
+                      chunk=List(),
+                      isWord=true,
+                    ),
+                    'd' -> RadixTree(
+                      children=Map(),
+                      chunk=List(),
+                      isWord=true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ) + "tru"
   println(tree)
-  assert(!tree.contains("trum"))
-  assert(tree.contains("trumped"))
-  assert(!tree.contains("trumpt"))
-  assert(!tree.contains("trumpd"))
-  assert(tree.contains("trumpet"))
-  assert(!tree.contains("trumpis"))
-  assert(tree.contains("trumpistan"))
-  assert(tree.contains("t"))
+  // assert(!tree.contains("trum"))
+  // assert(tree.contains("trumped"))
+  // assert(!tree.contains("trumpt"))
+  // assert(!tree.contains("trumpd"))
+  // assert(tree.contains("trumpet"))
+  // assert(!tree.contains("trumpis"))
+  // assert(tree.contains("trumpistan"))
+  // assert(tree.contains("t"))
   assert(tree.contains("tru"))
 }
