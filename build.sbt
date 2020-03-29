@@ -6,7 +6,7 @@ scalaVersion := "2.13.1"
 
 libraryDependencies ++= Seq(
   "io.estatico" %% "newtype" % "0.4.3",
-  "org.typelevel" %% "cats-core" % "2.1.0",
+  "org.typelevel" %% "cats-core" % "2.1.1",
   "org.scalatest" %% "scalatest" % "3.1.0",
 )
 
