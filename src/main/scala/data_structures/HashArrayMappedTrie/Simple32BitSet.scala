@@ -3,7 +3,7 @@ package data_structures.hamt
 import scala.language.implicitConversions
 import cats.implicits._
 import io.estatico.newtype.macros.newtype
-import io.estatico.newtype.ops._
+import io.estatico.newtype.ops.toCoercibleIdOps
 
 package object Simple32BitSetContainer {
 
