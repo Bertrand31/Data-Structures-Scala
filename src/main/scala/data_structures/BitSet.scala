@@ -68,6 +68,7 @@ package object BitSetContainer {
       this.words.forall(_ === 0)
   }
 
+  // A builder needs to be defined without using a companion object, because of newtype.
   object BitSetBuilder {
 
     def apply(numbers: Long*): BitSet = BitSet(Array(0)) ++ numbers

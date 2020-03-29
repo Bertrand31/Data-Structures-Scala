@@ -28,6 +28,7 @@ package object Simple32BitSetContainer {
     def isEmpty: Boolean = this.word === 0
   }
 
+  // A builder needs to be defined without using a companion object, because of newtype.
   object Simple32BitSetBuilder {
 
     def apply(): Simple32BitSet = Simple32BitSet(0)
