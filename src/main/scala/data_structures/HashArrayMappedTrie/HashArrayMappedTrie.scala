@@ -4,12 +4,12 @@ import scala.collection.View
 import scala.reflect.ClassTag
 import cats.implicits._
 import data_structures.Utils.AugmentedArray
-import Simple32BitSetContainer.{Simple32BitSet, Simple32BitSetBuilder}
+import Simple32BitSetContainer.Simple32BitSet
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
 final case class Leaf[A: ClassTag, B: ClassTag](
-  private val bitset: Simple32BitSet = Simple32BitSetBuilder(),
+  private val bitset: Simple32BitSet = Simple32BitSet(),
   private val values: Array[(A, B)] = Array.empty[(A, B)],
 ) extends HashArrayMappedTrie[A, B] {
 
@@ -41,7 +41,7 @@ final case class Leaf[A: ClassTag, B: ClassTag](
 }
 
 final case class Node[A: ClassTag, B: ClassTag](
-  private val bitset: Simple32BitSet = Simple32BitSetBuilder(),
+  private val bitset: Simple32BitSet = Simple32BitSet(),
   private val children: Array[HashArrayMappedTrie[A, B]] = Array.empty[HashArrayMappedTrie[A, B]],
 ) extends HashArrayMappedTrie[A, B] {
 

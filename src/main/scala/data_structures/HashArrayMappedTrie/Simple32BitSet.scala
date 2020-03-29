@@ -3,6 +3,7 @@ package data_structures.hamt
 import scala.language.implicitConversions
 import cats.implicits._
 import io.estatico.newtype.macros.newtype
+import io.estatico.newtype.ops._
 
 package object Simple32BitSetContainer {
 
@@ -28,9 +29,8 @@ package object Simple32BitSetContainer {
     def isEmpty: Boolean = this.word === 0
   }
 
-  // A builder needs to be defined without using a companion object, because of newtype.
-  object Simple32BitSetBuilder {
+  object Simple32BitSet {
 
-    def apply(): Simple32BitSet = Simple32BitSet(0)
+    def apply(): Simple32BitSet = 0.coerce
   }
 }
