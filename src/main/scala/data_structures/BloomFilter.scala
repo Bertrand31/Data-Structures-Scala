@@ -3,6 +3,7 @@ package data_structures
 import scala.util.hashing.MurmurHash3.stringHash
 import Math.{abs, ceil, log, pow, round}
 import cats.implicits._
+import BitSetContainer.{BitSet, BitSetBuilder}
 
 case class BloomFilter[A](
   nbOfItems: Int,
@@ -60,7 +61,7 @@ object BloomFilter {
     BloomFilter(
       nbOfItems=nbOfItems,
       falsePositiveProbability=falsePositiveProbability,
-      bitset=BitSet(),
+      bitset=BitSetBuilder(),
       maxSize=maxSize,
       numberOfHashFunctions=getNumberOfHashFunctions(nbOfItems, maxSize),
       hashSeed=scala.util.Random.nextInt,

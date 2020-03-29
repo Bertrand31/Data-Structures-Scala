@@ -5,11 +5,13 @@ version := "1"
 scalaVersion := "2.13.1"
 
 libraryDependencies ++= Seq(
+  "io.estatico" %% "newtype" % "0.4.3",
   "org.typelevel" %% "cats-core" % "2.1.0",
   "org.scalatest" %% "scalatest" % "3.1.0",
 )
 
 scalacOptions ++= Seq(
+  "-Ymacro-annotations", // Needed by newtype
   "-deprecation", // Warn about deprecated features
   "-encoding", "UTF-8", // Specify character encoding used by source files
   "-feature", // Emit warning and location for usages of features that should be imported explicitly
