@@ -4,11 +4,12 @@ import scala.collection.View
 import scala.reflect.ClassTag
 import cats.implicits._
 import data_structures.Utils.AugmentedArray
+import Simple32BitSetContainer.{Simple32BitSet, Simple32BitSetBuilder}
 
 sealed trait HashArrayMappedTrie[+A, +B]
 
 final case class Leaf[A: ClassTag, B: ClassTag](
-  private val bitset: Simple32BitSet = Simple32BitSet(),
+  private val bitset: Simple32BitSet = Simple32BitSetBuilder(),
   private val values: Array[(A, B)] = Array.empty[(A, B)],
 ) extends HashArrayMappedTrie[A, B] {
 
@@ -21,7 +22,7 @@ final case class Leaf[A: ClassTag, B: ClassTag](
   def add(word: Int, kv: (A, B)): Leaf[A, B] = {
     val (position, _) = this.bitset.getPosition(word)
     Leaf(
-      bitset=this.bitset + word,
+      bitset=this.bitset add word,
       values=this.values.insertAt(position, kv),
     )
   }
@@ -31,7 +32,7 @@ final case class Leaf[A: ClassTag, B: ClassTag](
     if (!isSet) this
     else
       Leaf(
-        bitset=this.bitset - word,
+        bitset=this.bitset remove word,
         values=this.values.removeAt(position),
       )
   }
@@ -40,7 +41,7 @@ final case class Leaf[A: ClassTag, B: ClassTag](
 }
 
 final case class Node[A: ClassTag, B: ClassTag](
-  private val bitset: Simple32BitSet = Simple32BitSet(),
+  private val bitset: Simple32BitSet = Simple32BitSetBuilder(),
   private val children: Array[HashArrayMappedTrie[A, B]] = Array.empty[HashArrayMappedTrie[A, B]],
 ) extends HashArrayMappedTrie[A, B] {
 
@@ -69,7 +70,7 @@ final case class Node[A: ClassTag, B: ClassTag](
       val newChildren =
         if (position >= current.children.size) current.children :+ newLeaf
         else current.children.updated(position, newLeaf)
-      val newBitset = current.bitset + currentStep
+      val newBitset = current.bitset add currentStep
       current.copy(bitset=newBitset, children=newChildren)
     } else
       if (isSet) {
@@ -83,7 +84,7 @@ final case class Node[A: ClassTag, B: ClassTag](
       } else {
         val newChild = descendAndAdd(item, steps, Node())
         val newChildren = current.children.insertAt(position, newChild)
-        val newBitSet = current.bitset + currentStep
+        val newBitSet = current.bitset add currentStep
         current.copy(children=newChildren, bitset=newBitSet)
       }
   }
@@ -99,14 +100,14 @@ final case class Node[A: ClassTag, B: ClassTag](
       current.children(position) match {
         case _: Leaf[A, B] =>
           val newChildren = current.children.removeAt(position)
-          val newBitset = current.bitset - currentStep
+          val newBitset = current.bitset remove currentStep
           current.copy(children=newChildren, bitset=newBitset)
         case node: Node[A, B] =>
           val newChild = descendAndRemove(key, steps, node)
           val newChildren =
             if (newChild.bitset.isEmpty) current.children.removeAt(position)
             else current.children.updated(position, newChild)
-          val newBitset = current.bitset - currentStep
+          val newBitset = current.bitset remove currentStep
           current.copy(children=newChildren, bitset=newBitset)
       }
     else current
