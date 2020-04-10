@@ -17,12 +17,14 @@ object RoaringBitmapUtils {
       bitmap
     }
 
+    private def iterator: Iterator[Integer] = bitmap.iterator.asScala
+
     def getPosition(item: Int): (Int, Boolean) = {
       def isSet = bitmap contains item
-      val onesUpToItem = bitmap.iterator.asScala.takeWhile(_ < item).size
+      val onesUpToItem = iterator.takeWhile(_ < item).size
       (onesUpToItem, isSet)
     }
 
-    def toList: List[Int] = bitmap.iterator.asScala.map(_.toInt).toList
+    def toList: List[Int] = iterator.map(_.toInt).toList
   }
 }

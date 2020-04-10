@@ -17,20 +17,24 @@ final case class Trie(
     if (tail.isEmpty) {
       if (isSet) {
         val updatedChild = trie.children(position).copy(isWord=true)
-        trie.copy(children=trie.children.updated(position, updatedChild))
+        val updatedChildren = trie.children.updated(position, updatedChild)
+        trie.copy(children=updatedChildren)
       } else {
         val newBitset = trie.bitset + head
         val newChild = new Trie(isWord=true)
-        trie.copy(bitset=newBitset, children=trie.children.insertAt(position, newChild))
+        val updatedChildren = trie.children.insertAt(position, newChild)
+        trie.copy(bitset=newBitset, children=updatedChildren)
       }
     } else {
       if (isSet) {
-        val newChild = insert(tail, trie.children(position))
-        trie.copy(children=children.updated(position, newChild))
+        val updatedChild = insert(tail, trie.children(position))
+        val updatedChildren = trie.children.updated(position, updatedChild)
+        trie.copy(children=updatedChildren)
       } else {
         val newBitset = trie.bitset + head
         val newChild = insert(tail, new Trie)
-        trie.copy(bitset=newBitset, children=trie.children.insertAt(position, newChild))
+        val updatedChildren = trie.children.insertAt(position, newChild)
+        trie.copy(bitset=newBitset, children=updatedChildren)
       }
     }
   }
@@ -64,8 +68,22 @@ object Trie {
 object TrieApp extends App {
 
   val data = List(
+    "project runway",
     "pinterest",
     "river",
+    "kayak",
+    "progenex",
+    "progeria",
+    "pg&e",
+    "project free tv",
+    "bank",
+    "proactive",
+    "progesterone",
+    "press democrat",
+    "priceline",
+    "pandora",
+    "reprobe",
+    "paypal",
   )
   val trie = Trie(data:_*)
   println(trie.keys)
