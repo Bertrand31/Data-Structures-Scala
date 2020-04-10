@@ -7,6 +7,7 @@ scalaVersion := "2.13.1"
 libraryDependencies ++= Seq(
   "io.estatico" %% "newtype" % "0.4.3",
   "org.typelevel" %% "cats-core" % "2.1.1",
+  "org.roaringbitmap" % "RoaringBitmap" % "0.8.13",
   "org.scalatest" %% "scalatest" % "3.1.0",
 )
 
