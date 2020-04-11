@@ -1,5 +1,6 @@
 package data_structures
 
+import cats.implicits._
 import TrieUtils.{getIndexesFromString, getStringFromIndexes}
 
 final case class Trie(
@@ -7,38 +8,32 @@ final case class Trie(
   private val isFinal: Boolean,
 ) {
 
-  def +(word: String): Trie = {
-    def insertIndexes(indexes: Seq[Int], trie: Trie): Trie =
-      indexes match {
-        case head +: Nil => {
-          val newSubTrie = trie.children(head).getOrElse(Trie()).copy(isFinal=true)
-          trie.copy(trie.children.updated(head, Some(newSubTrie)))
-        }
-        case head +: tail => {
-          val newSubTrie = trie.children(head) match {
-            case Some(subTrie) => insertIndexes(tail, subTrie)
-            case None => insertIndexes(tail, Trie())
-          }
-          trie.copy(trie.children.updated(head, Some(newSubTrie)))
-        }
+  private def insertIndexes: Seq[Int] => Trie =
+    _ match {
+      case head +: Nil => {
+        val newSubTrie = this.children(head).getOrElse(Trie()).copy(isFinal=true)
+        this.copy(children=this.children.updated(head, Some(newSubTrie)))
       }
-
-    insertIndexes(getIndexesFromString(word), this)
-  }
-
-  def ++(words: IterableOnce[String]): Trie = words.iterator.foldLeft(this)(_ + _)
-
-  def ++(trie: Trie): Trie = this ++ trie.keys
-
-  def contains(word: String): Boolean = {
-    def endsOnLastIndex(indexes: Seq[Int], trie: Trie): Boolean =
-      indexes match {
-        case head +: Nil => trie.children(head).map(_.isFinal).getOrElse(false)
-        case head +: tail => trie.children(head).map(endsOnLastIndex(tail, _)).getOrElse(false)
+      case head +: tail => {
+        val newSubTrie = this.children(head) match {
+          case Some(subTrie) => subTrie.insertIndexes(tail)
+          case None => Trie().insertIndexes(tail)
+        }
+        this.copy(children=this.children.updated(head, Some(newSubTrie)))
       }
+    }
 
-    endsOnLastIndex(getIndexesFromString(word), this)
-  }
+  def `+`: String => Trie = getIndexesFromString >>> this.insertIndexes
+
+  def `++`: IterableOnce[String] => Trie = _.iterator.foldLeft(this)(_ + _)
+
+  private def endsOnLastIndex: Seq[Int] => Boolean =
+    _ match {
+      case head +: Nil => this.children(head).fold(false)(_.isFinal)
+      case head +: tail => this.children(head).fold(false)(_.endsOnLastIndex(tail))
+    }
+
+  def contains: String => Boolean = getIndexesFromString >>> this.endsOnLastIndex
 
   def keys(): List[String] = {
     def descendCharByChar(accumulator: Vector[Int], trie: Trie): List[Vector[Int]] =
@@ -100,16 +95,16 @@ final case class Trie(
     }
   }
 
-  lazy val isEmpty: Boolean = !this.children.exists(_.isDefined)
+  def isEmpty: Boolean = this.children.forall(_.isEmpty)
 }
 
 object Trie {
 
-  private val LatinAlphabetLength = 122
+  private val AlphabetLength = 122
 
   def apply(initialItems: String*): Trie =
     Trie(
-      children=Array.fill[Option[Trie]](LatinAlphabetLength)(None),
+      children=Array.fill[Option[Trie]](AlphabetLength)(None),
       isFinal=false,
     ) ++ initialItems
 }
