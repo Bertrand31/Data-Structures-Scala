@@ -37,21 +37,21 @@ final case class Trie(
 
   def contains: String => Boolean = getIndexesFromString >>> this.endsOnLastIndex
 
-  private def descendCharByChar(accumulator: Path): List[Path] =
-    (0 to (this.children.size - 1)).flatMap(index => {
+  private def descendCharByChar(chars: Path = Vector()): List[Path] =
+    (0 until this.children.size).flatMap(index => {
       this.children(index) match {
         case None => Vector()
         case Some(subTrie) if (subTrie.isFinal) =>
-          val currentWord = accumulator :+ index
+          val currentWord = chars :+ index
           currentWord +: subTrie.descendCharByChar(currentWord)
-        case Some(subTrie) => subTrie.descendCharByChar(accumulator :+ index)
+        case Some(subTrie) => subTrie.descendCharByChar(chars :+ index)
       }
     }).toList
 
-  def keys: List[String] = this.descendCharByChar(Vector()).map(getStringFromIndexes)
+  def keys: List[String] = this.descendCharByChar().map(getStringFromIndexes)
 
   private def takeNWords(n: Int, chars: Path = Vector(), soFar: List[Path] = List()): List[Path] =
-    (0 to (this.children.size - 1)).foldLeft(soFar)((acc, index) => {
+    (0 until this.children.size).foldLeft(soFar)((acc, index) => {
       if (acc.size >= n) acc
       else
         this.children(index) match {
