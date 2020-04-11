@@ -1,49 +1,48 @@
-package data_structures.trie
+package data_structures
 
 import org.roaringbitmap.RoaringBitmap
-import data_structures.Utils.AugmentedArray
+import Utils.AugmentedArray
 import TrieUtils.{getIndexesFromString, getStringFromIndexes}
 import RoaringBitmapUtils.AugmentedBitmap
 
-final case class Trie(
+final case class CompressedTrie(
   private val bitset: RoaringBitmap = new RoaringBitmap,
-  private val children: Array[Trie] = new Array(0),
+  private val children: Array[CompressedTrie] = new Array(0),
   private val isWord: Boolean = false,
 ) {
 
-  def insert(chars: Seq[Int], trie: Trie): Trie = {
+  def insert(chars: Seq[Int], trie: CompressedTrie): CompressedTrie = {
     val head +: tail = chars
     val (position, isSet) = trie.bitset.getPosition(head)
-    if (tail.isEmpty) {
+    if (tail.isEmpty)
       if (isSet) {
         val updatedChild = trie.children(position).copy(isWord=true)
         val updatedChildren = trie.children.updated(position, updatedChild)
         trie.copy(children=updatedChildren)
       } else {
         val newBitset = trie.bitset + head
-        val newChild = new Trie(isWord=true)
+        val newChild = new CompressedTrie(isWord=true)
         val updatedChildren = trie.children.insertAt(position, newChild)
         trie.copy(bitset=newBitset, children=updatedChildren)
       }
-    } else {
+    else
       if (isSet) {
         val updatedChild = insert(tail, trie.children(position))
         val updatedChildren = trie.children.updated(position, updatedChild)
         trie.copy(children=updatedChildren)
       } else {
         val newBitset = trie.bitset + head
-        val newChild = insert(tail, new Trie)
+        val newChild = insert(tail, new CompressedTrie)
         val updatedChildren = trie.children.insertAt(position, newChild)
         trie.copy(bitset=newBitset, children=updatedChildren)
       }
-    }
   }
 
-  def +(word: String): Trie = insert(getIndexesFromString(word), this)
+  def +(word: String): CompressedTrie = insert(getIndexesFromString(word), this)
 
-  def ++(words: IterableOnce[String]): Trie = words.iterator.foldLeft(this)(_ + _)
+  def ++(words: IterableOnce[String]): CompressedTrie = words.iterator.foldLeft(this)(_ + _)
 
-  def ++(trie: Trie): Trie = this ++ trie.toList
+  def ++(trie: CompressedTrie): CompressedTrie = this ++ trie.toList
 
   private def keys(currentPrefix: Seq[Int]): List[Seq[Int]] = {
     val words =
@@ -51,8 +50,7 @@ final case class Trie(
         .flatMap({
           case (char, subTrie) => subTrie.keys(currentPrefix :+ char)
         })
-    if (this.isWord) currentPrefix +: words
-    else words
+    if (this.isWord) currentPrefix +: words else words
   }
 
   private def getNFirst(n: Int, prefix: Vector[Int], soFar: List[Vector[Int]] = List()): List[Vector[Int]] =
@@ -71,9 +69,9 @@ final case class Trie(
 
   def getNBelow(n: Int, remainingChars: String, basePrefix: String): List[String] =
     if (remainingChars.isEmpty) {
-      val base = if (this.isWord) List(basePrefix) else List.empty
-      base ++ this.getNFirst(n, getIndexesFromString(basePrefix))
-        .map(getStringFromIndexes)
+      val baseWord = getIndexesFromString(basePrefix)
+      val nFirstBelow = getNFirst(n, baseWord) map getStringFromIndexes
+      if (this.isWord) basePrefix +: nFirstBelow else nFirstBelow
     } else {
       val firstChar = remainingChars.head
       val (position, _) = this.bitset.getPosition(firstChar.toInt)
@@ -83,14 +81,16 @@ final case class Trie(
     }
 
   def toList: List[String] = keys(Vector.empty).map(getStringFromIndexes)
+
+  def isEmpty: Boolean = this.bitset.isEmpty
 }
 
-object Trie {
+object CompressedTrie {
 
-  def apply(initialItems: String*): Trie = new Trie ++ initialItems
+  def apply(initialItems: String*): CompressedTrie = new CompressedTrie ++ initialItems
 }
 
-object TrieApp extends App {
+object CompressedTrieApp extends App {
 
   val data = List(
     "project runway",
@@ -110,6 +110,6 @@ object TrieApp extends App {
     "reprobe",
     "paypal",
   )
-  val trie = Trie(data:_*)
+  val trie = CompressedTrie(data:_*)
   println(trie.getNBelow(4, "p", "p"))
 }

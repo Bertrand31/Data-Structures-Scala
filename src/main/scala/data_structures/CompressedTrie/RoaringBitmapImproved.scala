@@ -1,4 +1,4 @@
-package data_structures.trie
+package data_structures
 
 import scala.jdk.CollectionConverters._
 import org.roaringbitmap.RoaringBitmap
