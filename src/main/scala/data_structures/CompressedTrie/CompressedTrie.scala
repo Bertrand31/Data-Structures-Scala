@@ -44,7 +44,7 @@ final case class CompressedTrie(
 
   def ++(trie: CompressedTrie): CompressedTrie = this ++ trie.toList
 
-  private def keys(currentPrefix: Seq[Int]): List[Seq[Int]] = {
+  private def keys(currentPrefix: Vector[Int]): List[Vector[Int]] = {
     val words =
       (this.bitset.toList zip this.children)
         .flatMap({
@@ -62,7 +62,7 @@ final case class CompressedTrie(
           val (char, subTrie) = tpl
           val word = prefix :+ char
           if (subTrie.isWord)
-            subTrie.getNFirst(n, word, acc :+ word)
+            subTrie.getNFirst(n, word, word +: acc)
           else
             subTrie.getNFirst(n, word, acc)
         })
@@ -77,7 +77,7 @@ final case class CompressedTrie(
       val (position, _) = this.bitset.getPosition(firstChar.toInt)
       this.children
         .lift(position)
-        .fold(List[String]())(_.getNBelow(n, remainingChars.tail, basePrefix))
+        .fold(List[String]())(_.getNBelow(n, remainingChars.tail, basePrefix).reverse)
     }
 
   def toList: List[String] = keys(Vector.empty).map(getStringFromIndexes)
@@ -110,6 +110,19 @@ object CompressedTrieApp extends App {
     "reprobe",
     "paypal",
   )
-  val trie = CompressedTrie(data:_*)
-  println(trie.getNBelow(4, "p", "p"))
+  var cTrie = CompressedTrie()
+  var trie = Trie()
+
+  PerfUtils.profile("cTrie.apply") {
+    cTrie = CompressedTrie(data:_*)
+  }
+  PerfUtils.profile("trie.apply") {
+    trie = Trie(data:_*)
+  }
+  PerfUtils.profile("cTrie.getNBelow") {
+    cTrie.getNBelow(4, "p", "p")
+  }
+  PerfUtils.profile("trie.keysWithPrefix") {
+    trie.keysWithPrefix("p", Some(4))
+  }
 }

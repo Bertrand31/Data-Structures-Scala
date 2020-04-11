@@ -9,7 +9,7 @@ object TrieUtils {
       .map(_.toInt)
       .toVector
 
-  def getStringFromIndexes: Seq[Int] => String =
+  def getStringFromIndexes: Vector[Int] => String =
     _
       .map(_.toChar)
       .mkString("")
