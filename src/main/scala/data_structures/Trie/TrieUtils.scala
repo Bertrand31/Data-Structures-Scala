@@ -2,12 +2,12 @@ package data_structures.trie
 
 object TrieUtils {
 
-  def getIndexesFromString: String => Seq[Int] =
+  def getIndexesFromString: String => Vector[Int] =
     _
       .toLowerCase
       .toCharArray
       .map(_.toInt)
-      .toList
+      .toVector
 
   def getStringFromIndexes: Seq[Int] => String =
     _
