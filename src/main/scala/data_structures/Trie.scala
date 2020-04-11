@@ -8,6 +8,8 @@ final case class Trie(
   private val isFinal: Boolean,
 ) {
 
+  type Path = Vector[Int]
+
   private def insertIndexes: Seq[Int] => Trie =
     _ match {
       case head +: Nil => {
@@ -35,51 +37,44 @@ final case class Trie(
 
   def contains: String => Boolean = getIndexesFromString >>> this.endsOnLastIndex
 
-  def keys(): List[String] = {
-    def descendCharByChar(accumulator: Vector[Int], trie: Trie): List[Vector[Int]] =
-      (0 to (trie.children.length - 1)).flatMap(index => {
-        trie.children(index) match {
-          case None => Vector()
-          case Some(subTrie) if (subTrie.isFinal) => {
-            val currentWord = accumulator :+ index
-            currentWord +: descendCharByChar(currentWord, subTrie)
-          }
-          case Some(subTrie) => descendCharByChar(accumulator :+ index, subTrie)
+  private def descendCharByChar(accumulator: Path): List[Path] =
+    (0 to (this.children.size - 1)).flatMap(index => {
+      this.children(index) match {
+        case None => Vector()
+        case Some(subTrie) if (subTrie.isFinal) =>
+          val currentWord = accumulator :+ index
+          currentWord +: subTrie.descendCharByChar(currentWord)
+        case Some(subTrie) => subTrie.descendCharByChar(accumulator :+ index)
+      }
+    }).toList
+
+  def keys: List[String] = this.descendCharByChar(Vector()).map(getStringFromIndexes)
+
+  private def takeNWords(n: Int, chars: Path = Vector(), soFar: List[Path] = List()): List[Path] =
+    (0 to (this.children.size - 1)).foldLeft(soFar)((acc, index) => {
+      if (acc.size >= n) acc
+      else
+        this.children(index) match {
+          case Some(subTrie) if (subTrie.isFinal) =>
+            val currentWord = chars :+ index
+            val newSoFar = acc :+ currentWord
+            if (newSoFar.size >= n) newSoFar
+            else subTrie.takeNWords(n, currentWord, newSoFar)
+          case Some(subTrie) => subTrie.takeNWords(n, chars :+ index, acc)
+          case None => acc
         }
-      }).toList
+    })
 
-    descendCharByChar(Vector(), this).map(getStringFromIndexes)
-  }
+  def firstNKeys: Int => List[String] = this.takeNWords(_).map(getStringFromIndexes)
 
-  def firstNKeys(n: Int): List[String] = {
-    def takeNWords(accumulator: Vector[Int], trie: Trie, soFar: List[Vector[Int]]): List[Vector[Int]] =
-      (0 to (trie.children.size - 1)).foldLeft(soFar)((acc, index) => {
-        if (acc.size >= n) acc
-        else
-          trie.children(index) match {
-            case Some(subTrie) if (subTrie.isFinal) =>
-              val currentWord = accumulator :+ index
-              val newSoFar = acc :+ currentWord
-              if (newSoFar.size >= n) newSoFar
-              else takeNWords(currentWord, subTrie, newSoFar)
-            case Some(subTrie) =>
-              takeNWords(accumulator :+ index, subTrie, acc)
-            case None => acc
-          }
-      })
-
-    takeNWords(Vector(), this, List.empty).map(getStringFromIndexes)
-  }
+  private def descendWithPrefix: Seq[Int] => Option[Trie] =
+    _ match {
+      case head +: Nil  => this.children(head)
+      case head +: tail => this.children(head).flatMap(_.descendWithPrefix(tail))
+    }
 
   def keysWithPrefix(prefix: String, max: Option[Int]): List[String] = {
-
-    def descendWithPrefix(indexes: Seq[Int], trie: Trie): Option[Trie] =
-      indexes match {
-        case head +: Nil => trie.children(head)
-        case head +: tail => trie.children(head).flatMap(descendWithPrefix(tail, _))
-      }
-
-    val subTrie = descendWithPrefix(getIndexesFromString(prefix), this)
+    val subTrie = this.descendWithPrefix(getIndexesFromString(prefix))
     subTrie match {
       case None => List()
       case Some(subTrie) if (subTrie.isFinal) =>
@@ -103,7 +98,7 @@ object Trie {
   private val AlphabetLength = 122
 
   def apply(initialItems: String*): Trie =
-    Trie(
+    new Trie(
       children=Array.fill[Option[Trie]](AlphabetLength)(None),
       isFinal=false,
     ) ++ initialItems
