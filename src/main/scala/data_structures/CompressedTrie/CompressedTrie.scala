@@ -45,8 +45,6 @@ final case class CompressedTrie(
 
   def `++`: IterableOnce[String] => CompressedTrie = _.iterator.foldLeft(this)(_ + _)
 
-  def merge: CompressedTrie => CompressedTrie = this ++ _.toList
-
   private def keys(currentPrefix: Path): List[Path] = {
     val words =
       (this.bitset.toList zip this.children)
@@ -92,7 +90,11 @@ final case class CompressedTrie(
 
 object CompressedTrie {
 
-  def apply(initialItems: String*): CompressedTrie = new CompressedTrie ++ initialItems
+  def apply(initialItems: IterableOnce[String]): CompressedTrie =
+    new CompressedTrie ++ initialItems
+
+  def apply(initialItems: String*): CompressedTrie =
+    CompressedTrie(initialItems)
 }
 
 object CompressedTrieApp extends App {
