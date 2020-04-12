@@ -56,7 +56,7 @@ being a Java library, I have extended it using an [_Implicit Class_](./RoaringBi
 to give it a more immutable look (even though it remains a mutable data structure underneath) and
 add a few methods we need.
 
-## Performance comparison
+## Performance comparison
 
 For demonstration purposes, I have compared the construction and the search through both a naive
 implementation of a Trie using a 26-items long array of `Option`s, and our Compressed Trie:
