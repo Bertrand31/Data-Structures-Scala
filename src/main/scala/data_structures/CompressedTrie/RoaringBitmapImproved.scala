@@ -25,6 +25,6 @@ object RoaringBitmapUtils {
       (onesUpToItem, isSet)
     }
 
-    def toList: List[Int] = iterator.map(_.toInt).toList
+    def toIterator: Iterator[Int] = iterator.map(_.toInt)
   }
 }

@@ -9,7 +9,7 @@ import RoaringBitmapUtils.AugmentedBitmap
 final case class CompressedTrie(
   private val bitset: RoaringBitmap = new RoaringBitmap,
   private val children: Array[CompressedTrie] = new Array(0),
-  private val isPath: Boolean = false,
+  private val isWord: Boolean = false,
 ) {
 
   type Path = Vector[Int]
@@ -19,12 +19,12 @@ final case class CompressedTrie(
     val (position, isSet) = this.bitset.getPosition(head)
     if (tail.isEmpty)
       if (isSet) {
-        val updatedChild = this.children(position).copy(isPath=true)
+        val updatedChild = this.children(position).copy(isWord=true)
         val updatedChildren = this.children.updated(position, updatedChild)
         this.copy(children=updatedChildren)
       } else {
         val newBitset = this.bitset + head
-        val newChild = new CompressedTrie(isPath=true)
+        val newChild = new CompressedTrie(isWord=true)
         val updatedChildren = this.children.insertAt(position, newChild)
         this.copy(bitset=newBitset, children=updatedChildren)
       }
@@ -47,34 +47,35 @@ final case class CompressedTrie(
 
   private def keys(currentPrefix: Path): List[Path] = {
     val words =
-      (this.bitset.toList zip this.children)
+      (this.bitset.toIterator zip this.children)
         .flatMap({
           case (char, subTrie) => subTrie.keys(currentPrefix :+ char)
         })
-    if (this.isPath) currentPrefix +: words else words
+        .toList
+      if (this.isWord) currentPrefix +: words else words
   }
 
   private def getNFirst(n: Int, prefix: Path, soFar: List[Path] = List()): List[Path] =
     if (soFar.size >= n) soFar
     else
-      (this.bitset.toList zip this.children)
-        .foldLeft(soFar)((acc, tpl) => {
+      (this.bitset.toIterator zip this.children)
+        .foldLeft(soFar)((acc, tpl) =>
           if (acc.size >= n) acc
           else {
             val (char, subTrie) = tpl
             val word = prefix :+ char
-            if (subTrie.isPath)
+            if (subTrie.isWord)
               subTrie.getNFirst(n, word, word +: acc)
             else
               subTrie.getNFirst(n, word, acc)
           }
-        })
+        )
 
-  def getNBelow(n: Int, remainingChars: String, basePrefix: String): List[String] =
+  private def getNBelow(n: Int, remainingChars: String, basePrefix: String): List[String] =
     if (remainingChars.isEmpty) {
       val basePath = getIndexesFromString(basePrefix)
       val nFirstBelow = getNFirst(n, basePath) map getStringFromIndexes
-      if (this.isPath) basePrefix +: nFirstBelow else nFirstBelow
+      if (this.isWord) basePrefix +: nFirstBelow else nFirstBelow
     } else {
       val firstChar = remainingChars.head
       val (position, _) = this.bitset.getPosition(firstChar.toInt)
@@ -82,6 +83,8 @@ final case class CompressedTrie(
         .lift(position)
         .fold(List[String]())(_.getNBelow(n, remainingChars.tail, basePrefix).reverse)
     }
+
+  def getNBelow(n: Int, prefix: String): List[String] = getNBelow(n, prefix, prefix)
 
   def toList: List[String] = keys(Vector.empty).map(getStringFromIndexes)
 
@@ -121,13 +124,13 @@ object CompressedTrieApp extends App {
   var trie = Trie()
 
   PerfUtils.profile("cTrie.apply") {
-    cTrie = CompressedTrie(data:_*)
+    cTrie = CompressedTrie(data)
   }
   PerfUtils.profile("trie.apply") {
     trie = Trie(data:_*)
   }
   PerfUtils.profile("cTrie.getNBelow") {
-    cTrie.getNBelow(4, "p", "p")
+    cTrie.getNBelow(4, "p")
   }
   PerfUtils.profile("trie.keysWithPrefix") {
     trie.keysWithPrefix("p", Some(4))
