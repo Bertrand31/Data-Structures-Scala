@@ -61,6 +61,8 @@ package object BitSetContainer {
             .map(_ + (wordIndex.toLong << 6L))
       }
 
+    def toList: List[Long] = toArray.toList
+
     def cardinality: Int =
       this.words.foldLeft(0)(_ + countOnes(_))
 
