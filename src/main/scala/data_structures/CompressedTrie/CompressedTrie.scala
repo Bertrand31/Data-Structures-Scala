@@ -71,20 +71,20 @@ final case class CompressedTrie(
           }
         )
 
-  private def getNBelow(n: Int, remainingChars: String, basePrefix: String): List[String] =
+  private def getNBelow(n: Int, remainingChars: Path, basePrefix: String): List[String] =
     if (remainingChars.isEmpty) {
       val basePath = getIndexesFromString(basePrefix)
-      val nFirstBelow = getNFirst(n, basePath) map getStringFromIndexes
+      val nFirstBelow = getNFirst(n, basePath).reverse.map(getStringFromIndexes)
       if (this.isWord) basePrefix +: nFirstBelow else nFirstBelow
     } else {
-      val firstChar = remainingChars.head
-      val (position, _) = this.bitset.getPosition(firstChar.toInt)
-      this.children
-        .lift(position)
-        .fold(List[String]())(_.getNBelow(n, remainingChars.tail, basePrefix).reverse)
+      val firstChar +: restChars = remainingChars
+      val (position, isSet) = this.bitset.getPosition(firstChar)
+      if (!isSet) List()
+      else this.children(position).getNBelow(n, restChars, basePrefix)
     }
 
-  def getNBelow(n: Int, prefix: String): List[String] = getNBelow(n, prefix, prefix)
+  def getNBelow(n: Int, prefix: String): List[String] =
+    getNBelow(n, getIndexesFromString(prefix), prefix)
 
   def toList: List[String] = keys(Vector.empty).map(getStringFromIndexes)
 
