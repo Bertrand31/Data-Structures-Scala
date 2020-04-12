@@ -48,18 +48,18 @@ Building on what we have at this point, we can introduce a slightly different va
 our concerns about our previous approach.
 
 We can replace our traditional bitset with a compressed bitset, and thus trade a little bit of
-runtime speed for a lot of space. This gives us our Compressed Trie.
+runtime speed for a lot of space for most datasets. This gives us our Compressed Trie.
 
 For our particular implementation, [RoaringBitmaps](https://github.com/RoaringBitmap/RoaringBitmap)
 are used. They are used by Apache Spark, Apache Hive, Apache Druid, Netflix Atlas, etc. However, it
-being a Java library, I have extended it using an [_Implicit Class_](./RoaringBitmapImproved.scala)
+being a Java library, I have [extended it](./RoaringBitmapImproved.scala) using an _Implicit Class_
 to give it a more immutable look (even though it remains a mutable data structure underneath) and
 add a few methods we need.
 
 ## Performance comparison
 
 For demonstration purposes, I have compared the construction and the search through both a naive
-implementation of a Trie using a 26-items long array of `Option`s, and our Compressed Trie:
+implementation of a Trie using arrays of `Option`s, and our Compressed Trie:
 
 ```
 ============================
@@ -76,7 +76,9 @@ Profiling compressedTrie.getNBelow:
 Median          2 288 ns
 ```
 
+## Alternative
+
 It is interesting to note that for our purpose, a Radix Tree would also work, and would provide a
 more compact representation of our dataset, given how small and sparse it is. Although it will
-provide identical time complexities, it may also provide better runtime performance for search
-operations.
+provide identical worst-case time complexities, it may also provide better runtime performance for
+search operations.
