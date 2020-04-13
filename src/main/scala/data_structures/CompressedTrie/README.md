@@ -62,19 +62,22 @@ For demonstration purposes, I have compared the construction and the search thro
 implementation of a Trie using arrays of `Option`s, and our Compressed Trie:
 
 ```
-============================
+===================================
 Profiling basicTrie.apply:
 Median          45 622 ns
-============================
+===================================
 Profiling compressedTrie.apply:
 Median          22 631 ns
-============================
+===================================
 Profiling basicTrie.keysWithPrefix:
 Median          21 062 ns
-============================
+===================================
 Profiling compressedTrie.getNBelow:
 Median          2 288 ns
+===================================
 ```
+
+This is only provided for illustration purposes, as both Tries could probably be optimized further.
 
 ## Alternative
 
