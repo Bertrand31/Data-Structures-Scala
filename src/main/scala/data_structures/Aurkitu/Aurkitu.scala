@@ -13,10 +13,10 @@ final case class Aurkitu(
     val wordId = this.words.size
     val newWords = words + (wordId -> word)
     val pairs = word.zipWithIndex
-    val newCharacterPositions = pairs.foldLeft(this.characterPositions)((acc, pair) => {
+    val newCharacterPositions = pairs.foldLeft(this.characterPositions)((map, pair) => {
       val (char, charPosition) = pair
-      val newBitSet = acc.getOrElse(char, BitSetBuilder()) + charPosition
-      acc.updated(char, newBitSet)
+      val newBitSet = map.getOrElse(char, BitSetBuilder()) + charPosition
+      map.updated(char, newBitSet)
     })
     val newIndex = pairs.foldLeft(this.index)((acc, pair) => {
       val newBitSet = acc.getOrElse(pair, BitSetBuilder()) + wordId
@@ -29,9 +29,10 @@ final case class Aurkitu(
 
   def searchChunk: String => Set[String] =
     _
+      .iterator
       .map(char =>
         characterPositions.get(char) match {
-          case None => Set[String]()
+          case None => Set.empty[String]
           case Some(positions) =>
             positions
               .iterator
