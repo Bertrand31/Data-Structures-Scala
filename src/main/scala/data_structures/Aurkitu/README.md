@@ -84,3 +84,13 @@ have two matches: the IDs 1 and 2. We look them up in the `words` map and get ou
 We have described this process with a two-letters pattern, but as you can imagine it can be
 performed with as many letters as needed, we just keep computing intersections until we reach the
 end of the pattern.
+
+## A word on space complexity
+
+We can easily see that `words` is `Θ(n)`, but what about `characterPositions` and `index`?
+Since there's only a limited number of letters and of positions they can take in a word, the number
+of keys in both those maps in going to be `Θ(log n)`. However, each value in front of those key is
+a set which size will grow linearly as more words are added.
+
+So, both structures are actually `Θ(n log n)` in size complexity, which gives us an overall
+`Θ(n log n)` space complexity for the Aurkitu.
