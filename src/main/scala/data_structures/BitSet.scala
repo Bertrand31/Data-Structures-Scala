@@ -53,15 +53,15 @@ package object BitSetContainer {
       this.words.lift(getWordIndex(number))
         .fold(false)(word => (word & (~(1L << number))) =!= word)
 
-    def toArray: Array[Long] =
-      this.words.zipWithIndex flatMap {
+    def iterator: Iterator[Int] =
+      this.words.iterator.zipWithIndex flatMap {
         case (word, wordIndex) =>
           (0 to LongBits)
-            .filter(bit => (word & ~(1L << bit)) =!= word)
-            .map(_ + (wordIndex.toLong << 6L))
+            .filter(bit => (word & ~(1L << bit.toLong)) =!= word)
+            .map(_ + (wordIndex << 6))
       }
 
-    def toList: List[Long] = toArray.toList
+    def toArray: Array[Int] = iterator.toArray
 
     def cardinality: Int =
       this.words.foldLeft(0)(_ + countOnes(_))

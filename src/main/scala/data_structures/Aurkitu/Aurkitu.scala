@@ -34,12 +34,10 @@ final case class Aurkitu(
           case None => Set[String]()
           case Some(positions) =>
             positions
-              .toList
-              .map(_.toInt)
+              .iterator
               .map((char, _))
               .flatMap(this.index.get)
-              .flatMap(_.toArray)
-              .map(_.toInt)
+              .flatMap(_.iterator)
               .map(this.words)
               .toSet
         }
