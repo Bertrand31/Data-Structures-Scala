@@ -96,6 +96,6 @@ complexity for the Aurkitu.
 
 ## TODO
 
-- the `searchChunk` method's algorithm can be improved to avoid some unnecessary steps ;
+- the `searchChunk` method's algorithm can be improved to avoid some unnecessary work ;
 
 - a method to _remove_ words from the Aurkitu has to be added.

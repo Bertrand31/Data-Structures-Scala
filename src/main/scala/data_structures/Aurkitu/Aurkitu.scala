@@ -31,17 +31,17 @@ final case class Aurkitu(
     _
       .iterator
       .map(char =>
-        characterPositions.get(char) match {
-          case None => Set.empty[String]
-          case Some(positions) =>
-            positions
+        this.characterPositions
+          .get(char)
+          .fold(Set.empty[String]) {
+            _
               .iterator
               .map((char, _))
               .flatMap(this.index.get)
               .flatMap(_.iterator)
               .map(this.words)
               .toSet
-        }
+          }
       )
       .reduce(_ intersect _)
 
