@@ -18,8 +18,7 @@
 Aurkitu (the [Euskara](https://en.wikipedia.org/wiki/Basque_language) word for "to find") is a data
 structure that was born from a simple question: for a given list of words we know how to find all
 the words that start with a given prefix quickly, using a Trie. But what about finding all the words
-that contain a given substring? Surely we can find a data structure that provides better runtime
-complexity than `Θ(n)`.
+that contain a given substring? Surely we can craft a data structure to help us with that.
 
 ## How does it work?
 
@@ -87,10 +86,16 @@ end of the pattern.
 
 ## A word on space complexity
 
-We can easily see that `words` is `Θ(n)`, but what about `characterPositions` and `index`?
-Since there's only a limited number of letters and of positions they can take in a word, the number
-of keys in both those maps in going to be `Θ(log n)`. However, each value in front of those key is
-a set which size will grow linearly as more words are added.
+We can easily see that `words` takes up `Θ(n)` space, but what about `characterPositions` and
+`index`? Since there's only so many possible letter and position combinations, the number of keys in
+both those maps in going to be `Θ(log n)`. However, each value in front of those key is a set, which
+size will grow linearly as more words are added.
 
-So, both structures are actually `Θ(n log n)` in size complexity, which gives us an overall
-`Θ(n log n)` space complexity for the Aurkitu.
+So, both structures take up `Θ(n log n)` space, which gives us an overall `Θ(n log n)` space
+complexity for the Aurkitu.
+
+## TODO
+
+- the `searchChunk` method's algorithm can be improved to avoid some unnecessary steps ;
+
+- a method to _remove_ words from the Aurkitu has to be added.
