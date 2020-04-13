@@ -77,7 +77,8 @@ Median          2 288 ns
 ===================================
 ```
 
-This is only provided for illustration purposes, as both Tries could probably be optimized further.
+This is only provided for illustration purposes, as both Tries could probably be optimized further,
+and those measures were taken using [an in-house tool](../Utils.scala#L21).
 
 ## Alternative
 
@@ -85,3 +86,8 @@ It is interesting to note that for our purpose, a Radix Tree would also work, an
 more compact representation of our dataset, given how small and sparse it is. Although it will
 provide identical worst-case time complexities, it may also provide better runtime performance for
 search operations.
+
+## TODO
+
+- measure and compare the runtime performance and memory footprints of the various implementations
+mentionned above.
