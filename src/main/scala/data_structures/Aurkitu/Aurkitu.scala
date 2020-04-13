@@ -45,7 +45,7 @@ final case class Aurkitu(
       )
       .reduce(_ intersect _)
 
-  def toList: Iterable[String] = this.words.values
+  def toIterable: Iterable[String] = this.words.values
 }
 
 object Aurkitu {
