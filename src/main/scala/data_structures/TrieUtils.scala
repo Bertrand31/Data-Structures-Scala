@@ -5,7 +5,6 @@ object TrieUtils {
   def getIndexesFromString: String => Vector[Int] =
     _
       .toLowerCase
-      .toCharArray
       .map(_.toInt)
       .toVector
 
