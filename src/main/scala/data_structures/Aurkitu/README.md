@@ -38,7 +38,7 @@ the IDs of the words in which the appear.
 Let's say we ingest the following words: "foo", "bar", "baz". Here's how the resulting Aurkitu will
 look like:
 
-```
+```scala
 Aukritu(
   words=Map(
     (0 -> "foob"),
