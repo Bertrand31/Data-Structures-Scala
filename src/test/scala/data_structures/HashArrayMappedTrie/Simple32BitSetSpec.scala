@@ -1,4 +1,4 @@
-import data_structures.hamt.Simple32BitSet
+import data_structures.hamt.Simple32BitSetContainer.Simple32BitSet
 
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -19,7 +19,7 @@ class Simple32BitSetSpec extends AnyFlatSpec {
 
   it should "insert the given number" in {
 
-    val withThree = empty + 3
+    val withThree = empty add 3
     assert(!withThree.isEmpty)
     assert(withThree contains 3)
   }
@@ -28,8 +28,8 @@ class Simple32BitSetSpec extends AnyFlatSpec {
 
   it should "remove a given number" in {
 
-    val withThree = empty + 3
-    val emptied = withThree - 3
+    val withThree = empty add 3
+    val emptied = withThree remove 3
     assert(!emptied.contains(3))
     assert(emptied.isEmpty)
   }
@@ -38,7 +38,7 @@ class Simple32BitSetSpec extends AnyFlatSpec {
 
   it should "return whether the bitset contains the given number" in {
 
-    val withThree = empty + 3
+    val withThree = empty add 3
     assert(withThree.contains(3))
     assert(!withThree.contains(4))
   }
@@ -47,7 +47,7 @@ class Simple32BitSetSpec extends AnyFlatSpec {
 
   it should "return how many bits are set before the one in question, and whether it is set" in {
 
-    val populated = empty + 3 + 4 + 5 + 10
+    val populated = empty add 3 add 4 add 5 add 10
     assert(populated.getPosition(5) == ((2, true)))
     assert(populated.getPosition(10) == ((3, true)))
     assert(populated.getPosition(2) == ((0, false)))

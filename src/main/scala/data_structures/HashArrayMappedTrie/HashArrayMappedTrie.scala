@@ -3,7 +3,7 @@ package data_structures.hamt
 import scala.collection.View
 import scala.reflect.ClassTag
 import cats.implicits._
-import data_structures.Utils.AugmentedArray
+import data_structures.Utils.{AugmentedArray, log2}
 import Simple32BitSetContainer.Simple32BitSet
 
 sealed trait HashArrayMappedTrie[+A, +B]
@@ -46,7 +46,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 ) extends HashArrayMappedTrie[A, B] {
 
   private val StepBits  = 5
-  private val TrieDepth = Math.ceil(Int.MaxValue.toBinaryString.length / StepBits).toInt
+  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
 
   private def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)

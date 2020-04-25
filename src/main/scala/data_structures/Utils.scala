@@ -14,4 +14,6 @@ object Utils {
     def removeAt(index: Int): Array[A] =
       arr.take(index) ++ arr.drop(index + 1)
   }
+
+  def log2: Long => Double = Math.log10(_) / Math.log10(2)
 }

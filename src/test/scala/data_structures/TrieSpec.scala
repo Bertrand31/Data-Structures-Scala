@@ -49,17 +49,17 @@ class TrieSpec extends AnyFlatSpec {
   behavior of "the keysWithPrefix method"
 
   it should "return all stored words starting with a given prefix" in {
-    assert(complexTrie.keysWithPrefix("barr") == List("barreau"))
-    assert(complexTrie.keysWithPrefix("bar") == List("bar", "barreau"))
-    assert(complexTrie.keysWithPrefix("baz") == List())
+    assert(complexTrie.keysWithPrefix("barr", None) == List("barreau"))
+    assert(complexTrie.keysWithPrefix("bar", None) == List("bar", "barreau"))
+    assert(complexTrie.keysWithPrefix("baz", None) == List())
   }
 
-  behavior of "the ++ (merging) method"
+  behavior of "the merge method"
 
   it should "merge two tries' contents into a new trie" in {
     val sampleTrie = Trie("foo", "bar")
     val sampleTrie2 = Trie("baz")
-    val mergedTrie = sampleTrie ++ sampleTrie2
+    val mergedTrie = sampleTrie merge sampleTrie2
     assert(mergedTrie.keys.sorted == List("bar", "baz", "foo"))
   }
 }

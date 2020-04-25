@@ -15,11 +15,11 @@ final case class Aurkitu(
     val pairs = word.zipWithIndex
     val newCharacterPositions = pairs.foldLeft(this.characterPositions)((map, pair) => {
       val (char, charPosition) = pair
-      val newBitSet = map.getOrElse(char, BitSetBuilder()) + charPosition
+      val newBitSet = map.getOrElse(char, BitSetBuilder()) add charPosition
       map.updated(char, newBitSet)
     })
     val newIndex = pairs.foldLeft(this.index)((acc, pair) => {
-      val newBitSet = acc.getOrElse(pair, BitSetBuilder()) + wordId
+      val newBitSet = acc.getOrElse(pair, BitSetBuilder()) add wordId
       acc.updated(pair, newBitSet)
     })
     Aurkitu(newWords, newCharacterPositions, newIndex)
@@ -29,7 +29,7 @@ final case class Aurkitu(
 
   def searchChunk: String => Set[String] =
     _
-      .iterator
+      .toIndexedSeq
       .map(char =>
         this.characterPositions
           .get(char)

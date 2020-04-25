@@ -29,6 +29,8 @@ final case class Trie(
 
   def `++`: IterableOnce[String] => Trie = _.iterator.foldLeft(this)(_ + _)
 
+  def merge(trie: Trie): Trie = trie.keys.foldLeft(this)(_ + _)
+
   private def endsOnLastIndex: Seq[Int] => Boolean =
     _ match {
       case head +: Nil => this.children(head).fold(false)(_.isFinal)

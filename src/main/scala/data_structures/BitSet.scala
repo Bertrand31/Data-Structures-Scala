@@ -3,10 +3,11 @@ package data_structures
 import scala.language.implicitConversions
 import cats.implicits._
 import io.estatico.newtype.macros.newtype
+import Utils.log2
 
 object BitSetUtils {
 
-    def LongBits = Long.MaxValue.toBinaryString.length
+    def LongBits = log2(Long.MaxValue).toInt
 
     def countOnes(number: Long): Int =
       (0 to LongBits).count(shift =>
@@ -22,7 +23,7 @@ package object BitSetContainer {
 
   @newtype case class BitSet(words: Array[Long]) {
 
-    def +(number: Long): BitSet = {
+    def add(number: Long): BitSet = {
       require(number >= 0, "Bitset element must be >= 0")
       val wordIndex = getWordIndex(number)
       val newWords = {
@@ -35,9 +36,9 @@ package object BitSetContainer {
     }
 
     def `++`: IterableOnce[Long] => BitSet =
-      _.iterator.foldLeft(this)(_ + _)
+      _.iterator.foldLeft(this)(_ add _)
 
-    def -(number: Long): BitSet = {
+    def remove(number: Long): BitSet = {
       require(number >= 0, "Bitset element must be >= 0")
       val wordIndex = getWordIndex(number)
       words.lift(wordIndex) match {
