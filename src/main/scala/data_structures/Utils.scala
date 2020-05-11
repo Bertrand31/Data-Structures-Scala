@@ -6,6 +6,9 @@ object Utils {
 
   implicit class AugmentedArray[A: ClassTag](val arr: Array[A]) {
 
+    def updatedWith(index: Int, fn: A => A): Array[A] =
+      arr.updated(index, fn(arr(index)))
+
     def insertAt(index: Int, elem: A): Array[A] = {
       val (front, back) = arr.splitAt(index)
       (front :+ elem) ++ back

@@ -2,6 +2,7 @@ package data_structures
 
 import scala.util.Random
 import scala.util.hashing.MurmurHash3.stringHash
+import Utils.AugmentedArray
 
 final case class CountMinSketch[A](
   private val sketch: Array[Array[Int]],
@@ -20,7 +21,7 @@ final case class CountMinSketch[A](
     val newSketch =
       this.sketch
         .zip(hashes)
-        .map({ case (row, hash) => row.updated(hash, row(hash) + 1) })
+        .map({ case (row, hash) => row.updatedWith(hash, _ + 1) })
     this.copy(sketch=newSketch, isEmpty=false)
   }
 

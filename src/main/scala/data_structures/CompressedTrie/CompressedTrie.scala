@@ -52,7 +52,7 @@ final case class CompressedTrie(
           case (char, subTrie) => subTrie.keys(currentPrefix :+ char)
         })
         .toList
-      if (this.isWord) currentPrefix +: words else words
+    if (this.isWord) currentPrefix +: words else words
   }
 
   private def getNFirst(n: Int, prefix: Path, soFar: List[Path] = List()): List[Path] =
