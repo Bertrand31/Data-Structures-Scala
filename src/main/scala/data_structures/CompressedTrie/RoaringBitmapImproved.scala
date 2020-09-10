@@ -12,7 +12,7 @@ object RoaringBitmapUtils {
 
     def -(item: Int): RoaringBitmap = bitmap.tap(_ remove item)
 
-    private def iterator: Iterator[Integer] = bitmap.iterator.asScala
+    private lazy val iterator: Iterator[Integer] = bitmap.iterator.asScala
 
     def getPosition(item: Int): (Int, Boolean) = {
       def isSet = bitmap contains item

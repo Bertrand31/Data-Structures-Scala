@@ -18,10 +18,17 @@ package object Simple32BitSetContainer {
     def contains(number: Int): Boolean =
       (this.word & (~(1 << number))) =!= this.word
 
-    private def countOnesUpTo(maxBinaryDigit: Int): Int =
-      (0 until maxBinaryDigit).count(shift =>
-        (this.word & ~(1L << shift)) =!= this.word
-      )
+    private def countOnesUpTo(maxBinaryDigit: Int): Int = {
+      var i = 0
+      var ones = 0
+      while (i < maxBinaryDigit) {
+        if ((this.word & ~(1L << i)) =!= this.word) {
+          ones += 1
+        }
+        i += 1
+      }
+      ones
+    }
 
     def getPosition(number: Int): (Int, Boolean) =
       (countOnesUpTo(number), contains(number))

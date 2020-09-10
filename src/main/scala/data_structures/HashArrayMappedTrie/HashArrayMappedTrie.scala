@@ -1,6 +1,8 @@
 package data_structures.hamt
 
 import scala.collection.View
+import scala.annotation.tailrec
+import scala.util.chaining.scalaUtilChainingOps
 import scala.reflect.ClassTag
 import cats.implicits._
 import data_structures.Utils.{AugmentedArray, log2}
@@ -51,14 +53,12 @@ final case class Node[A: ClassTag, B: ClassTag](
   private def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)
       .iterator
-      .map(chunkNumber => {
-        val number = hash >> (StepBits * chunkNumber)
-        val newStepBinary =
-          (0 until StepBits)
-            .map(shift => if ((number & ~(1L << shift)) =!= number) 1 else 0)
-            .mkString
-        Integer.parseInt(newStepBinary, 2)
-      })
+      .map(chunkNumber =>
+        (hash >> (StepBits * chunkNumber))
+          .toBinaryString
+          .takeRight(StepBits)
+          .pipe(Integer.parseInt(_, 2))
+      )
 
   private def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 
@@ -117,6 +117,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
+  @tailrec
   private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
     val currentStep = steps.next
     val (position, isSet) = current.bitset.getPosition(currentStep)
