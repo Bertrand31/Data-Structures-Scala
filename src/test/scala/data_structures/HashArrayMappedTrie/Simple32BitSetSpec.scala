@@ -43,6 +43,16 @@ class Simple32BitSetSpec extends AnyFlatSpec {
     assert(!withThree.contains(4))
   }
 
+  behavior of "the CountOnesUpTo method"
+
+  it should "count the number of set bits up to a certain bit positoin" in {
+
+    val bs = empty add 7 add 4 add 2
+    assert(bs.countOnesUpTo(12) === 3)
+    assert(bs.countOnesUpTo(6) === 2)
+    assert(bs.countOnesUpTo(1) === 0)
+  }
+
   behavior of "the getPosition method"
 
   it should "return how many bits are set before the one in question, and whether it is set" in {

@@ -47,18 +47,7 @@ final case class Node[A: ClassTag, B: ClassTag](
   private val children: Array[HashArrayMappedTrie[A, B]] = Array.empty[HashArrayMappedTrie[A, B]],
 ) extends HashArrayMappedTrie[A, B] {
 
-  private val StepBits  = 5
-  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
-
-  private def makePathFromHash(hash: Int): Iterator[Int] =
-    (0 until TrieDepth)
-      .iterator
-      .map(chunkNumber =>
-        (hash >> (StepBits * chunkNumber))
-          .toBinaryString
-          .takeRight(StepBits)
-          .pipe(Integer.parseInt(_, 2))
-      )
+  import Node._
 
   private def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 
@@ -137,11 +126,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def has(key: A): Boolean = getPair(key, getPath(key), this).isDefined
 
-  def size: Int =
-    this.children.foldLeft(0)({
-      case (acc, node: Node[A, B]) => acc + node.size
-      case (acc, Leaf(_, values))  => acc + values.size
-    })
+  def size: Int = ???
 
   def view: View[(A, B)] =
     this.children.view.flatMap({
@@ -169,6 +154,22 @@ final case class Node[A: ClassTag, B: ClassTag](
   def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
 
   def isEmpty: Boolean = this.bitset.isEmpty
+}
+
+object Node {
+
+  private val StepBits  = 5
+  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
+
+  def makePathFromHash(hash: Int): Iterator[Int] =
+    (0 until TrieDepth)
+      .iterator
+      .map(chunkNumber =>
+        (hash >> (StepBits * chunkNumber))
+          .toBinaryString
+          .take(StepBits)
+          .pipe(Integer.parseInt(_, 2))
+      )
 }
 
 object HashArrayMappedTrie {

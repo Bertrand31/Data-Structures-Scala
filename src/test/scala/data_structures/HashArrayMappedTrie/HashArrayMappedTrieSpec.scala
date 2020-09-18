@@ -1,5 +1,6 @@
 import data_structures.hamt.HashArrayMappedTrie
 
+import data_structures.hamt.Node
 import org.scalatest.flatspec.AnyFlatSpec
 
 class HashArrayMappedTrieSpec extends AnyFlatSpec {
@@ -124,5 +125,14 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
     val populated = HashArrayMappedTrie[Int, String]() ++ Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
     assert(populated.findValue(_.startsWith("ba")) === Some("bar"))
+  }
+
+  behavior of "the makePathFromHash method"
+
+  it should "return an iterator of steps through the trie" in {
+
+    val hash = scala.util.hashing.MurmurHash3.stringHash("foo")
+    val steps = Node.makePathFromHash(hash)
+    assert(steps.toList === List(17, 26, 16, 11, 8, 5, 0))
   }
 }
