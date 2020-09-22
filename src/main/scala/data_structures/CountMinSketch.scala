@@ -43,6 +43,6 @@ object CountMinSketch {
   def apply[A](width: Int, depth: Int): CountMinSketch[A] =
     CountMinSketch[A](
       sketch=Array.fill(depth)(Array.fill(width)(0)),
-      hashSeed=Random.nextInt,
+      hashSeed=Random.nextInt(),
     )
 }

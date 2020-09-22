@@ -2,7 +2,7 @@ name := "Scala Data Structures"
 
 version := "1"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.3"
 
 libraryDependencies ++= Seq(
   "io.estatico" %% "newtype" % "0.4.4",

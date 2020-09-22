@@ -1,3 +1,5 @@
+package data_structures.hamt
+
 import data_structures.hamt.HashArrayMappedTrie
 
 import org.scalatest.flatspec.AnyFlatSpec

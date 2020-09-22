@@ -47,23 +47,10 @@ final case class Node[A: ClassTag, B: ClassTag](
   private val children: Array[HashArrayMappedTrie[A, B]] = Array.empty[HashArrayMappedTrie[A, B]],
 ) extends HashArrayMappedTrie[A, B] {
 
-  private val StepBits  = 5
-  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
-
-  private def makePathFromHash(hash: Int): Iterator[Int] =
-    (0 until TrieDepth)
-      .iterator
-      .map(chunkNumber =>
-        (hash >> (StepBits * chunkNumber))
-          .toBinaryString
-          .takeRight(StepBits)
-          .pipe(Integer.parseInt(_, 2))
-      )
-
-  private def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
+  import Node._
 
   private def descendAndAdd(item: (A, B), steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
-    val currentStep = steps.next
+    val currentStep = steps.next()
     val (position, isSet) = current.bitset.getPosition(currentStep)
     if (!steps.hasNext) {
       val newLeaf = Leaf[A, B]().add(currentStep, item)
@@ -94,7 +81,7 @@ final case class Node[A: ClassTag, B: ClassTag](
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
   private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
-    val currentStep = steps.next
+    val currentStep = steps.next()
     val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet)
       current.children(position) match {
@@ -119,7 +106,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   @tailrec
   private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
-    val currentStep = steps.next
+    val currentStep = steps.next()
     val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet)
       current.children(position) match {
@@ -169,6 +156,24 @@ final case class Node[A: ClassTag, B: ClassTag](
   def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
 
   def isEmpty: Boolean = this.bitset.isEmpty
+}
+
+object Node {
+
+  private val StepBits  = 5
+  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
+
+  def makePathFromHash(hash: Int): Iterator[Int] =
+    (0 until TrieDepth)
+      .iterator
+      .map(chunkNumber =>
+        (hash >> (StepBits * chunkNumber))
+          .toBinaryString
+          .takeRight(StepBits)
+          .pipe(Integer.parseInt(_, 2))
+      )
+
+  def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 }
 
 object HashArrayMappedTrie {
