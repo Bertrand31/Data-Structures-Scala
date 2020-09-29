@@ -1,6 +1,7 @@
 package data_structures
 
 import scala.reflect.ClassTag
+import scala.collection.immutable.ArraySeq
 
 object Utils {
 
@@ -13,10 +14,21 @@ object Utils {
       val (front, back) = arr.splitAt(index)
       (front :+ elem) ++ back
     }
+  }
 
-    def removeAt(index: Int): Array[A] =
+  implicit class AugmentedArraySeq[A](val arr: ArraySeq[A]) {
+
+    def updatedWith(index: Int, fn: A => A): ArraySeq[A] =
+      arr.updated(index, fn(arr(index)))
+
+    def insertAt(index: Int, elem: A): ArraySeq[A] = {
+      val (front, back) = arr.splitAt(index)
+      (front :+ elem) ++ back
+    }
+
+    def removeAt(index: Int): ArraySeq[A] =
       arr.take(index) ++ arr.drop(index + 1)
   }
 
-  def log2: Long => Double = Math.log10(_) / Math.log10(2)
+  def log2: Double => Double = Math.log10(_) / Math.log10(2)
 }

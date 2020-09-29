@@ -1,23 +1,33 @@
 package data_structures.hamt
 
 import scala.collection.View
+import scala.collection.immutable.ArraySeq
 import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
-import scala.reflect.ClassTag
+import cats.Functor
 import cats.implicits._
-import data_structures.Utils.{AugmentedArray, log2}
+import data_structures.Utils.{AugmentedArraySeq, log2}
 import Simple32BitSetContainer.Simple32BitSet
 
-sealed trait HashArrayMappedTrie[+A, +B]
+sealed trait HashArrayMappedTrie[+A, +B] {
 
-final case class Leaf[A: ClassTag, B: ClassTag](
+  def view: View[(A, B)]
+
+  def values: View[B]
+}
+
+final case class Leaf[A, B](
   private val bitset: Simple32BitSet = Simple32BitSet(),
-  private val values: Array[(A, B)] = Array.empty[(A, B)],
+  private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty[(A, B)],
 ) extends HashArrayMappedTrie[A, B] {
+
+  def view: View[(A, B)] = view.empty
+
+  def values: View[B] = values.empty
 
   def getValue(word: Int): Option[B] = {
     val (position, isSet) = this.bitset.getPosition(word)
-    if (isSet) Some(this.values(position)._2)
+    if (isSet) Some(this.storedValues(position)._2)
     else None
   }
 
@@ -25,7 +35,7 @@ final case class Leaf[A: ClassTag, B: ClassTag](
     val (position, _) = this.bitset.getPosition(word)
     Leaf(
       bitset=this.bitset add word,
-      values=this.values.insertAt(position, kv),
+      storedValues=this.storedValues.insertAt(position, kv),
     )
   }
 
@@ -35,16 +45,16 @@ final case class Leaf[A: ClassTag, B: ClassTag](
     else
       Leaf(
         bitset=this.bitset remove word,
-        values=this.values.removeAt(position),
+        storedValues=this.storedValues.removeAt(position),
       )
   }
 
   def isEmpty: Boolean = this.bitset.isEmpty
 }
 
-final case class Node[A: ClassTag, B: ClassTag](
+final case class Node[A, B](
   private val bitset: Simple32BitSet = Simple32BitSet(),
-  private val children: Array[HashArrayMappedTrie[A, B]] = Array.empty[HashArrayMappedTrie[A, B]],
+  private val children: ArraySeq[HashArrayMappedTrie[A, B]] = ArraySeq.empty[HashArrayMappedTrie[A, B]],
 ) extends HashArrayMappedTrie[A, B] {
 
   import Node._
@@ -79,6 +89,9 @@ final case class Node[A: ClassTag, B: ClassTag](
   def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1), this)
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
+
+  def combine(x: HashArrayMappedTrie[A, B]): HashArrayMappedTrie[A, B] =
+    this ++ x.view.iterator
 
   private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
     val currentStep = steps.next()
@@ -138,9 +151,6 @@ final case class Node[A: ClassTag, B: ClassTag](
 
   def toArray: Array[(A, B)] = this.view.toArray
 
-  def map[C: ClassTag, D: ClassTag](fn: ((A, B)) => (C, D)): Node[C, D] =
-    HashArrayMappedTrie(this.view.map(fn))
-
   def foreach(fn: ((A, B)) => Unit): Unit = this.view.foreach(fn)
 
   def keys: View[A] = this.view.map(_._1)
@@ -161,7 +171,7 @@ final case class Node[A: ClassTag, B: ClassTag](
 object Node {
 
   private val StepBits  = 5
-  private val TrieDepth = math.ceil(log2(Int.MaxValue.toLong + 1) / StepBits).toInt
+  private val TrieDepth = math.ceil(log2(Int.MaxValue.toDouble + 1) / StepBits).toInt
 
   def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)
@@ -178,11 +188,23 @@ object Node {
 
 object HashArrayMappedTrie {
 
-  def empty[A: ClassTag, B: ClassTag]: Node[A, B] = Node()
+  type Hamt[T] = HashArrayMappedTrie[_, T]
 
-  def apply[A: ClassTag, B: ClassTag](initialItems: IterableOnce[(A, B)]): Node[A, B] =
+  implicit def hamtFunctor = new Functor[Hamt] {
+
+    def map[A, B](fa: Hamt[A])(f: A => B): Hamt[B] =
+      fa
+        .view
+        .map({ case (k, v) => k -> f(v) })
+        .iterator
+        .pipe(HashArrayMappedTrie(_))
+  }
+
+  def empty[A, B]: Node[A, B] = Node()
+
+  def apply[A, B](initialItems: IterableOnce[(A, B)]): Node[A, B] =
     HashArrayMappedTrie.empty[A, B] ++ initialItems
 
-  def apply[A: ClassTag, B: ClassTag](initialItems: (A, B)*): Node[A, B] =
+  def apply[A, B](initialItems: (A, B)*): Node[A, B] =
     HashArrayMappedTrie(initialItems)
 }
