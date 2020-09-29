@@ -1,6 +1,7 @@
 package data_structures
 
 import scala.language.implicitConversions
+import scala.collection.immutable.ArraySeq
 import cats.implicits._
 import io.estatico.newtype.macros.newtype
 import Utils.log2
@@ -21,7 +22,7 @@ package object BitSetContainer {
 
   import BitSetUtils._
 
-  @newtype case class BitSet(words: Array[Long]) {
+  @newtype case class BitSet(words: ArraySeq[Long]) {
 
     def add(number: Long): BitSet = {
       require(number >= 0, "Bitset element must be >= 0")
@@ -51,21 +52,22 @@ package object BitSetContainer {
     }
 
     def contains(number: Long): Boolean =
-      this.words.lift(getWordIndex(number))
-        .fold(false)(word => (word & (~(1L << number))) =!= word)
+      this.words
+        .lift(getWordIndex(number))
+        .exists(word => (word >>> number & 1) === 1)
 
     def iterator: Iterator[Int] =
       this.words.iterator.zipWithIndex flatMap {
         case (word, wordIndex) =>
           (0 to LongBits)
-            .filter(bit => (word & ~(1L << bit.toLong)) =!= word)
+            .filter(bit => (word >>> bit & 1) === 1)
             .map(_ + (wordIndex << 6))
       }
 
     def toArray: Array[Int] = iterator.toArray
 
     def cardinality: Int =
-      this.words.foldLeft(0)(_ + countOnes(_))
+      this.words.foldMap(countOnes)
 
     def isEmpty: Boolean =
       this.words.forall(_ === 0)
@@ -74,6 +76,6 @@ package object BitSetContainer {
   // A builder needs to be defined without using a companion object, because of newtype.
   object BitSetBuilder {
 
-    def apply(numbers: Long*): BitSet = BitSet(Array(0)) ++ numbers
+    def apply(numbers: Long*): BitSet = BitSet(ArraySeq(0)) ++ numbers
   }
 }
