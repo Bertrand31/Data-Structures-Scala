@@ -54,7 +54,7 @@ final case class Leaf[A, B](
 
 final case class Node[A, B](
   private val bitset: Simple32BitSet = Simple32BitSet(),
-  private val children: ArraySeq[HashArrayMappedTrie[A, B]] = ArraySeq.empty[HashArrayMappedTrie[A, B]],
+  private val children: ArraySeq[HashArrayMappedTrie[A, B]] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
 
   import Node._
