@@ -4,11 +4,10 @@ import scala.collection.View
 import scala.collection.immutable.ArraySeq
 import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
-import cats.{Functor, Monoid}
+import cats.{Eq, Functor, Monoid, Show}
 import cats.implicits._
 import data_structures.Utils.{AugmentedArraySeq, log2}
 import Simple32BitSetContainer.Simple32BitSet
-import cats.Show
 
 sealed trait HashArrayMappedTrie[+A, +B] {
 
@@ -188,9 +187,9 @@ object Node {
 
   implicit def nodeMonoid[A, B] = new Monoid[Node[A, B]] {
 
-    def empty: Node[A,B] = Node()
+    def empty: Node[A, B] = Node()
 
-    def combine(x: Node[A,B], y: Node[A,B]): Node[A,B] =
+    def combine(x: Node[A, B], y: Node[A, B]): Node[A, B] =
       x ++ y.view
   }
 
@@ -210,6 +209,12 @@ object Node {
 
     def show(t: HashArrayMappedTrie[A,B]): String =
       "HashArrayMappedTrie(" ++ t.view.map({ case (k, v) => s"$k -> $v" }).mkString(", ") ++ ")"
+  }
+
+  implicit def eqShow[A, B] = new Eq[HashArrayMappedTrie[A, B]] {
+
+    def eqv(x: HashArrayMappedTrie[A,B], y: HashArrayMappedTrie[A,B]): Boolean =
+      x.view.toMap == y.view.toMap
   }
 }
 
