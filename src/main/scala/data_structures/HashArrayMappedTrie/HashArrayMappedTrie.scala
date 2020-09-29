@@ -8,6 +8,8 @@ import cats.{Eq, Functor, Monoid, Show}
 import cats.implicits._
 import data_structures.Utils.{AugmentedArraySeq, log2}
 import Simple32BitSetContainer.Simple32BitSet
+import cats.Foldable
+import cats.Eval
 
 sealed trait HashArrayMappedTrie[+A, +B] {
 
@@ -211,10 +213,19 @@ object Node {
       "HashArrayMappedTrie(" ++ t.view.map({ case (k, v) => s"$k -> $v" }).mkString(", ") ++ ")"
   }
 
-  implicit def eqShow[A, B] = new Eq[HashArrayMappedTrie[A, B]] {
+  implicit def nodeEq[A, B] = new Eq[HashArrayMappedTrie[A, B]] {
 
     def eqv(x: HashArrayMappedTrie[A,B], y: HashArrayMappedTrie[A,B]): Boolean =
       x.view.toMap == y.view.toMap
+  }
+
+  implicit def nodeFoldable = new Foldable[NodeT] {
+
+    def foldLeft[A, B](fa: NodeT[A], b: B)(f: (B, A) => B): B =
+      fa.view.foldLeft(b)({ case (acc, (_, v)) => f(acc, v) })
+
+    def foldRight[A, B](fa: NodeT[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      fa.view.foldRight(lb)({ case ((_, v), acc) => f(v, acc) })
   }
 }
 
