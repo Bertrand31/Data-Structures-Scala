@@ -41,5 +41,7 @@ package object Simple32BitSetContainer {
   object Simple32BitSet {
 
     def apply(): Simple32BitSet = 0.coerce
+
+    def empty: Simple32BitSet = this.apply()
   }
 }

@@ -4,10 +4,11 @@ import scala.collection.View
 import scala.collection.immutable.ArraySeq
 import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
-import cats.Functor
+import cats.{Functor, Monoid}
 import cats.implicits._
 import data_structures.Utils.{AugmentedArraySeq, log2}
 import Simple32BitSetContainer.Simple32BitSet
+import cats.Show
 
 sealed trait HashArrayMappedTrie[+A, +B] {
 
@@ -17,8 +18,8 @@ sealed trait HashArrayMappedTrie[+A, +B] {
 }
 
 final case class Leaf[A, B](
-  private val bitset: Simple32BitSet = Simple32BitSet(),
-  private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty[(A, B)],
+  private val bitset: Simple32BitSet = Simple32BitSet.empty,
+  private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
 
   def view: View[(A, B)] = view.empty
@@ -53,7 +54,7 @@ final case class Leaf[A, B](
 }
 
 final case class Node[A, B](
-  private val bitset: Simple32BitSet = Simple32BitSet(),
+  private val bitset: Simple32BitSet = Simple32BitSet.empty,
   private val children: ArraySeq[HashArrayMappedTrie[A, B]] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
 
@@ -184,21 +185,35 @@ object Node {
       )
 
   def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
-}
 
-object HashArrayMappedTrie {
+  implicit def nodeMonoid[A, B] = new Monoid[Node[A, B]] {
 
-  type Hamt[T] = HashArrayMappedTrie[_, T]
+    def empty: Node[A,B] = Node()
 
-  implicit def hamtFunctor = new Functor[Hamt] {
+    def combine(x: Node[A,B], y: Node[A,B]): Node[A,B] =
+      x ++ y.view
+  }
 
-    def map[A, B](fa: Hamt[A])(f: A => B): Hamt[B] =
+  type NodeT[T] = Node[_, T]
+
+  implicit def nodeFunctor = new Functor[NodeT] {
+
+    def map[A, B](fa: NodeT[A])(f: A => B): NodeT[B] =
       fa
         .view
-        .map({ case (k, v) => k -> f(v) })
+        .map({ case (k, v) => (k, f(v)) })
         .iterator
         .pipe(HashArrayMappedTrie(_))
   }
+
+  implicit def nodeShow[A, B] = new Show[HashArrayMappedTrie[A, B]] {
+
+    def show(t: HashArrayMappedTrie[A,B]): String =
+      "HashArrayMappedTrie(" ++ t.view.map({ case (k, v) => s"$k -> $v" }).mkString(", ") ++ ")"
+  }
+}
+
+object HashArrayMappedTrie {
 
   def empty[A, B]: Node[A, B] = Node()
 
