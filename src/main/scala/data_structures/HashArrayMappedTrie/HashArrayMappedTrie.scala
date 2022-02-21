@@ -36,7 +36,7 @@ final case class Leaf[A, B](
   def add(word: Int, kv: (A, B)): Leaf[A, B] = {
     val (position, _) = this.bitset.getPosition(word)
     Leaf(
-      bitset=this.bitset add word,
+      bitset=this.bitset.add(word),
       storedValues=this.storedValues.insertAt(position, kv),
     )
   }
@@ -46,7 +46,7 @@ final case class Leaf[A, B](
     if (!isSet) this
     else
       Leaf(
-        bitset=this.bitset remove word,
+        bitset=this.bitset.remove(word),
         storedValues=this.storedValues.removeAt(position),
       )
   }
@@ -69,7 +69,7 @@ final case class Node[A, B](
       val newChildren =
         if (position >= current.children.size) current.children :+ newLeaf
         else current.children.updated(position, newLeaf)
-      val newBitset = current.bitset add currentStep
+      val newBitset = current.bitset.add(currentStep)
       current.copy(bitset=newBitset, children=newChildren)
     } else
       if (isSet) {
@@ -83,7 +83,7 @@ final case class Node[A, B](
       } else {
         val newChild = descendAndAdd(item, steps, Node())
         val newChildren = current.children.insertAt(position, newChild)
-        val newBitSet = current.bitset add currentStep
+        val newBitSet = current.bitset.add(currentStep)
         current.copy(children=newChildren, bitset=newBitSet)
       }
   }
@@ -102,14 +102,14 @@ final case class Node[A, B](
       current.children(position) match {
         case _: Leaf[A, B] =>
           val newChildren = current.children.removeAt(position)
-          val newBitset = current.bitset remove currentStep
+          val newBitset = current.bitset.remove(currentStep)
           current.copy(children=newChildren, bitset=newBitset)
         case node: Node[A, B] =>
           val newChild = descendAndRemove(key, steps, node)
           val newChildren =
             if (newChild.bitset.isEmpty) current.children.removeAt(position)
             else current.children.updated(position, newChild)
-          val newBitset = current.bitset remove currentStep
+          val newBitset = current.bitset.remove(currentStep)
           current.copy(children=newChildren, bitset=newBitset)
       }
     else current

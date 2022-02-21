@@ -5,7 +5,7 @@ import scala.collection.immutable.ArraySeq
 
 object Utils {
 
-  implicit class AugmentedArray[A: ClassTag](val arr: Array[A]) {
+  implicit class AugmentedArray[A: ClassTag](arr: Array[A]) {
 
     def updatedWith(index: Int, fn: A => A): Array[A] =
       arr.updated(index, fn(arr(index)))
@@ -16,7 +16,7 @@ object Utils {
     }
   }
 
-  implicit class AugmentedArraySeq[A](val arr: ArraySeq[A]) {
+  implicit class AugmentedArraySeq[A](arr: ArraySeq[A]) {
 
     def updatedWith(index: Int, fn: A => A): ArraySeq[A] =
       arr.updated(index, fn(arr(index)))

@@ -1,5 +1,4 @@
 import java.text.NumberFormat
-import scala.util.Random
 import org.scalatest.flatspec.AnyFlatSpec
 import scala.util.Random
 import data_structures.hamt.HashArrayMappedTrie
@@ -37,7 +36,7 @@ object PerfUtils {
 class HashArrayMappedTriePerfSpec extends AnyFlatSpec {
 
   "HAMT get" should "be fast af" in {
-    val dataset = (0 to 1000).map(_ => (Random.nextInt, Random.alphanumeric.take(3).mkString))
+    val dataset = (0 to 1000).map(_ => (Random.nextInt(), Random.alphanumeric.take(3).mkString))
 
     val boringMap = dataset.toMap
 

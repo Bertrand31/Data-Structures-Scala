@@ -1,8 +1,5 @@
 package data_structures
 
-import data_structures.BitSetContainer.{BitSet, BitSetBuilder}
-import BitSet._
-
 final case class Aurkitu(
   private val words: Map[Int, String]               = Map.empty,
   private val characterPositions: Map[Char, BitSet] = Map.empty,
@@ -15,11 +12,11 @@ final case class Aurkitu(
     val pairs = word.zipWithIndex
     val newCharacterPositions = pairs.foldLeft(this.characterPositions)((map, pair) => {
       val (char, charPosition) = pair
-      val newBitSet = map.getOrElse(char, BitSetBuilder()) add charPosition
+      val newBitSet = map.getOrElse(char, BitSet()) add charPosition
       map.updated(char, newBitSet)
     })
     val newIndex = pairs.foldLeft(this.index)((acc, pair) => {
-      val newBitSet = acc.getOrElse(pair, BitSetBuilder()) add wordId
+      val newBitSet = acc.getOrElse(pair, BitSet()) add wordId
       acc.updated(pair, newBitSet)
     })
     Aurkitu(newWords, newCharacterPositions, newIndex)

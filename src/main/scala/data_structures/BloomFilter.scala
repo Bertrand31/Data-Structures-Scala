@@ -1,12 +1,11 @@
 package data_structures
 
 import scala.util.hashing.MurmurHash3.stringHash
-import Math.{abs, ceil, log, pow, round}
+import math.{abs, ceil, log, pow, round}
 import cats.implicits._
-import BitSetContainer.{BitSet, BitSetBuilder}
 
 case class BloomFilter[A](
-  nbOfItems: Int,
+  expectedNumberOfItems: Int,
   falsePositiveProbability: Float,
   private val bitset: BitSet,
   private val maxSize: Int,
@@ -46,24 +45,25 @@ case class BloomFilter[A](
 
 object BloomFilter {
 
-  private def getMaxSize(nbOfItems: Int, falsePositiveProbability: Float): Int =
-    ceil(
-      abs(nbOfItems * log(falsePositiveProbability)).toDouble / log(1D / pow(log(2), 2).toDouble)
-    ).toInt
+  private def getMaxSize(expectedNumberOfItems: Int, falsePositiveProbability: Float): Int =
+    ceil {
+      val numerator = abs(expectedNumberOfItems * log(falsePositiveProbability)).toDouble
+      numerator / log(1D / pow(log(2), 2).toDouble)
+    }.toInt
 
-  private def getNumberOfHashFunctions(nbOfItems: Int, maxSize: Int): Int =
+  private def getNumberOfHashFunctions(expectedNumberOfItems: Int, maxSize: Int): Int =
     round(
-      (maxSize.toDouble / nbOfItems.toDouble) * log(2)
+      (maxSize.toDouble / expectedNumberOfItems.toDouble) * log(2)
     ).toInt
 
-  def apply[A](nbOfItems: Int, falsePositiveProbability: Float): BloomFilter[A] = {
-    val maxSize = getMaxSize(nbOfItems, falsePositiveProbability)
+  def apply[A](expectedNumberOfItems: Int, falsePositiveProbability: Float): BloomFilter[A] = {
+    val maxSize = getMaxSize(expectedNumberOfItems, falsePositiveProbability)
     BloomFilter(
-      nbOfItems=nbOfItems,
+      expectedNumberOfItems=expectedNumberOfItems,
       falsePositiveProbability=falsePositiveProbability,
-      bitset=BitSetBuilder(),
+      bitset=BitSet(),
       maxSize=maxSize,
-      numberOfHashFunctions=getNumberOfHashFunctions(nbOfItems, maxSize),
+      numberOfHashFunctions=getNumberOfHashFunctions(expectedNumberOfItems, maxSize),
       hashSeed=scala.util.Random.nextInt(),
     )
   }

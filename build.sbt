@@ -2,12 +2,12 @@ name := "Scala Data Structures"
 
 version := "1"
 
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.8"
 
 libraryDependencies ++= Seq(
   "io.estatico" %% "newtype" % "0.4.4",
-  "org.typelevel" %% "cats-core" % "2.2.0",
-  "org.roaringbitmap" % "RoaringBitmap" % "0.9.0",
+  "org.typelevel" %% "cats-core" % "2.3.0",
+  "org.roaringbitmap" % "RoaringBitmap" % "0.9.23",
   "org.scalatest" %% "scalatest" % "3.2.0",
 )
 
