@@ -24,3 +24,5 @@ scalacOptions ++= Seq(
   "-Ywarn-unused:_", // Enables all unused warnings
   "-Ywarn-value-discard", // Warn when non-Unit expression results are unused
 )
+
+enablePlugins(JmhPlugin)
