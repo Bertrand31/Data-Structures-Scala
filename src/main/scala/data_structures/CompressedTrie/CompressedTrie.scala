@@ -12,9 +12,9 @@ final case class CompressedTrie(
   private val isWord: Boolean = false,
 ) {
 
-  type Path = Vector[Int]
+  type WordPath = Vector[Int]
 
-  def insert(chars: Seq[Int]): CompressedTrie = {
+  private def insert(chars: Seq[Int]): CompressedTrie = {
     val head +: tail = chars
     val (position, isSet) = this.bitset.getPosition(head)
     if (tail.isEmpty)
@@ -41,11 +41,14 @@ final case class CompressedTrie(
       }
   }
 
+  def add(str: String): CompressedTrie =
+    insert(str.toCharArray.map(_.toInt).toSeq)
+
   def `+`: String => CompressedTrie = getIndexesFromString >>> this.insert
 
   def `++`: IterableOnce[String] => CompressedTrie = _.iterator.foldLeft(this)(_ + _)
 
-  private def keys(currentPrefix: Path): List[Path] = {
+  private def keys(currentPrefix: WordPath): List[WordPath] = {
     val words =
       (this.bitset.toIterator zip this.children)
         .flatMap({
@@ -55,7 +58,7 @@ final case class CompressedTrie(
     if (this.isWord) currentPrefix +: words else words
   }
 
-  private def getNFirst(n: Int, prefix: Path, soFar: List[Path] = List()): List[Path] =
+  private def getNFirst(n: Int, prefix: WordPath, soFar: List[WordPath] = List()): List[WordPath] =
     if (soFar.size >= n) soFar
     else
       (this.bitset.toIterator zip this.children)
@@ -71,7 +74,7 @@ final case class CompressedTrie(
           }
         )
 
-  private def getNBelow(n: Int, remainingChars: Path, basePrefix: String): List[String] =
+  private def getNBelow(n: Int, remainingChars: WordPath, basePrefix: String): List[String] =
     if (remainingChars.isEmpty) {
       val basePath = getIndexesFromString(basePrefix)
       val nFirstBelow = getNFirst(n, basePath).reverse.map(getStringFromIndexes)

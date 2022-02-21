@@ -5,15 +5,17 @@ import scala.util.hashing.MurmurHash3.stringHash
 import Utils.AugmentedArray
 
 final case class CountMinSketch[A](
+  private val width: Int,
+  private val depth: Int,
   private val sketch: Array[Array[Int]],
   private val hashSeed: Int,
   isEmpty: Boolean = true,
 ) {
 
   private def hashFunctions: Iterator[String => Int] =
-    (1 to sketch.length)
+    (1 to width)
       .iterator
-      .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % sketch.head.length)
+      .map(i => (str: String) => Math.abs(stringHash(str, hashSeed + i)) % depth)
 
   def +(item: A): CountMinSketch[A] = {
     val str = item.toString
@@ -42,6 +44,8 @@ object CountMinSketch {
 
   def apply[A](width: Int, depth: Int): CountMinSketch[A] =
     CountMinSketch[A](
+      width=width,
+      depth=depth,
       sketch=Array.fill(depth)(Array.fill(width)(0)),
       hashSeed=Random.nextInt(),
     )

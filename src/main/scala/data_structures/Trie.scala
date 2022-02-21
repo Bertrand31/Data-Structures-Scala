@@ -101,7 +101,7 @@ object Trie {
 
   def apply(initialItems: String*): Trie =
     new Trie(
-      children=Array.fill[Option[Trie]](AlphabetLength)(None),
+      children=Array.fill[Option[Trie]](AlphabetLength + 1)(None),
       isFinal=false,
     ) ++ initialItems
 }

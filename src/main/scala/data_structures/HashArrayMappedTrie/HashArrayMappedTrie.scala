@@ -4,7 +4,7 @@ import scala.collection.View
 import scala.collection.immutable.ArraySeq
 import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
-import cats.{Eq, Functor, Monoid, Show}
+import cats.{Eq, Functor, Monoid, Semigroup, Show}
 import cats.implicits._
 import data_structures.Utils.{AugmentedArraySeq, log2}
 import Simple32BitSetContainer.Simple32BitSet
@@ -92,9 +92,6 @@ final case class Node[A, B](
 
   def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
-  def combine(x: HashArrayMappedTrie[A, B]): HashArrayMappedTrie[A, B] =
-    this ++ x.view.iterator
-
   private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
     val currentStep = steps.next()
     val (position, isSet) = current.bitset.getPosition(currentStep)
@@ -135,9 +132,9 @@ final case class Node[A, B](
     getPair(key, getPath(key), this).map(_._2)
 
   def getOrElse(key: A, default: => B): B =
-    getPair(key, getPath(key), this).fold(default)(_._2)
+    get(key).getOrElse(default)
 
-  def has(key: A): Boolean = getPair(key, getPath(key), this).isDefined
+  def has(key: A): Boolean = get(key).isDefined
 
   def size: Int =
     this.children.foldLeft(0)({
@@ -159,6 +156,8 @@ final case class Node[A, B](
 
   def values: View[B] = this.view.map(_._2)
 
+  def forall(predicate: ((A, B)) => Boolean): Boolean = this.view.forall(predicate)
+
   def count(predicate: ((A, B)) => Boolean): Int = this.view.count(predicate)
 
   def countValues(predicate: B => Boolean): Int = this.values.count(predicate)
@@ -168,6 +167,10 @@ final case class Node[A, B](
   def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
 
   def isEmpty: Boolean = this.bitset.isEmpty
+
+  def nonEmpty: Boolean = !isEmpty
+
+  def isTraversableAgain: Boolean = true
 }
 
 object Node {
@@ -187,12 +190,18 @@ object Node {
 
   def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 
+  implicit def nodeSemigroup[A, B] = new Semigroup[Node[A, B]] {
+
+    def combine(x: Node[A, B], y: Node[A, B]): Node[A, B] =
+      x ++ y.view
+  }
+
   implicit def nodeMonoid[A, B] = new Monoid[Node[A, B]] {
 
     def empty: Node[A, B] = Node()
 
     def combine(x: Node[A, B], y: Node[A, B]): Node[A, B] =
-      x ++ y.view
+      nodeSemigroup.combine(x, y)
   }
 
   type NodeT[T] = Node[_, T]
