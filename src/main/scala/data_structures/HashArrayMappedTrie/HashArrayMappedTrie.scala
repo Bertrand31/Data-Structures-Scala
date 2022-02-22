@@ -23,9 +23,9 @@ final case class Leaf[A, B](
   private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
 
-  def view: View[(A, B)] = view.empty
+  def view: View[(A, B)] = storedValues.view
 
-  def values: View[B] = values.empty
+  def values: View[B] = view.map(_._2)
 
   def getValue(word: Int): Option[B] = {
     val (position, isSet) = this.bitset.getPosition(word)
@@ -145,7 +145,7 @@ final case class Node[A, B](
   def view: View[(A, B)] =
     this.children.view.flatMap({
       case node: Node[A, B] => node.view
-      case Leaf(_, values)  => values
+      case Leaf(_, values)  => values.view
     })
 
   def toArray: Array[(A, B)] = this.view.toArray

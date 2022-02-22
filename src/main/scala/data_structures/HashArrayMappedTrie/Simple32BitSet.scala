@@ -23,9 +23,7 @@ package object Simple32BitSetContainer {
       var ones = 0
       var number = this.word
       while (i < maxBinaryDigit) {
-        if ((number & 1) === 1) {
-          ones += 1
-        }
+        ones += number & 1
         number = number >>> 1
         i += 1
       }
