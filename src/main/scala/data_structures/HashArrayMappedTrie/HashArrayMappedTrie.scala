@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
 import cats.{Eq, Functor, Monoid, Semigroup, Show}
 import cats.implicits._
-import data_structures.Utils.{AugmentedArraySeq, log2}
+import data_structures.Utils.AugmentedArraySeq
 import Simple32BitSetContainer.Simple32BitSet
 import cats.Foldable
 import cats.Eval
@@ -176,9 +176,9 @@ final case class Node[A, B](
 object Node {
 
   private val StepBits  = 5
-  private val TrieDepth = math.ceil(log2(Int.MaxValue.toDouble + 1) / StepBits).toInt
+  private val TrieDepth = math.ceil(Int.MaxValue.toBinaryString.size / StepBits.toDouble).toInt
 
-  def makePathFromHash(hash: Int): Iterator[Int] =
+  private def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)
       .iterator
       .map(chunkNumber =>

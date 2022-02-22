@@ -1,5 +1,6 @@
 package data_structures.hamt
 
+import scala.util.Random
 import data_structures.hamt.HashArrayMappedTrie
 
 import org.scalatest.flatspec.AnyFlatSpec
@@ -14,6 +15,14 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
     val empty = HashArrayMappedTrie.empty[Int, String]
     assert(empty.isEmpty)
+  }
+
+  behavior of "the apply method"
+
+  it should "not explode" in {
+
+    val dataset = (0 to 1000).map(_ => (Random.nextInt(), Random.alphanumeric.take(3).mkString))
+    assert(HashArrayMappedTrie(dataset).nonEmpty)
   }
 
   behavior of "the insert (+) method"
