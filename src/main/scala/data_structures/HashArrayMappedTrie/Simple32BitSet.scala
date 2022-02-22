@@ -10,10 +10,10 @@ package object Simple32BitSetContainer {
   @newtype final case class Simple32BitSet(val word: Int = 0) {
 
     def add(number: Int): Simple32BitSet =
-      Simple32BitSet(this.word | (1 << number))
+      (this.word | (1 << number)).coerce
 
     def remove(number: Int): Simple32BitSet =
-      Simple32BitSet(this.word & (~1 << number))
+      (this.word & (~1 << number)).coerce
 
     def contains(number: Int): Boolean =
       ((this.word >>> number) & 1) === 1

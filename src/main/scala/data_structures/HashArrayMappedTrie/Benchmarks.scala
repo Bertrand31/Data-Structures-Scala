@@ -20,8 +20,8 @@ object States {
 }
 
 @BenchmarkMode(Array(Mode.Throughput))
+@Warmup(iterations = 6, timeUnit = TimeUnit.SECONDS, time = 1)
 @Measurement(iterations = 4, timeUnit = TimeUnit.SECONDS, time = 1)
-@Warmup(iterations = 4, timeUnit = TimeUnit.SECONDS, time = 1)
 @Fork(value = 2, jvmArgsAppend = Array())
 @Threads(value = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
