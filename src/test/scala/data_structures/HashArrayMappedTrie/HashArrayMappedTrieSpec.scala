@@ -136,4 +136,12 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
     val populated = HashArrayMappedTrie[Int, String]() ++ Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
     assert(populated.findValue(_.startsWith("ba")) === Some("bar"))
   }
+
+  behavior of "the makePathFromHash utility function"
+
+  it should "return a correct path" in {
+
+    val path = Node.makePathFromHash("foo".hashCode)
+    assert(path.toList === List(6, 6, 3, 3, 0, 0, 0))
+  }
 }

@@ -175,18 +175,15 @@ final case class Node[A, B](
 
 object Node {
 
-  private val StepBits  = 5
+  private val StepBits = 5
+  // A number whose binary representation is `StepBits` 1s, to be used as a complement
+  private val StepComplement = math.pow(2, StepBits).toInt - 1
   private val TrieDepth = math.ceil(Int.MaxValue.toBinaryString.size / StepBits.toDouble).toInt
 
-  private def makePathFromHash(hash: Int): Iterator[Int] =
+  def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)
       .iterator
-      .map(chunkNumber =>
-        (hash >> (StepBits * chunkNumber))
-          .toBinaryString
-          .takeRight(StepBits)
-          .pipe(Integer.parseInt(_, 2))
-      )
+      .map(step => hash >> (StepBits * step) & StepComplement)
 
   def getPath(obj: Any): Iterator[Int] = makePathFromHash(obj.hashCode)
 
