@@ -16,14 +16,30 @@ object Utils {
     }
   }
 
-  implicit class AugmentedArraySeq[A](arr: ArraySeq[A]) {
-
-    def updatedWith(index: Int, fn: A => A): ArraySeq[A] =
-      arr.updated(index, fn(arr(index)))
+  implicit class AugmentedArraySeq[A: ClassTag](arr: ArraySeq[A]) {
 
     def insertAt(index: Int, elem: A): ArraySeq[A] = {
-      val (front, back) = arr.splitAt(index)
-      (front :+ elem) ++ back
+      val newArr = new Array[A](arr.size + 1)
+      var i = 0
+      if (index >= arr.size) {
+        while (i < arr.size) {
+          newArr.update(i, arr(i))
+          i += 1
+        }
+        newArr.update(arr.size, elem)
+      } else {
+        while (i < index) {
+          newArr.update(i, arr(i))
+          i += 1
+        }
+        newArr.update(index, elem)
+        i = index + 1
+        while (i < (newArr.size)) {
+          newArr.update(i, arr(i - 1))
+          i += 1
+        }
+      }
+      ArraySeq.unsafeWrapArray(newArr)
     }
 
     def removeAt(index: Int): ArraySeq[A] =

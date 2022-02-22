@@ -18,7 +18,7 @@ sealed trait HashArrayMappedTrie[+A, +B] {
   def values: View[B]
 }
 
-final case class Leaf[A, B](
+private final case class Leaf[A, B](
   private val bitset: Simple32BitSet = Simple32BitSet.empty,
   private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
@@ -34,7 +34,7 @@ final case class Leaf[A, B](
   }
 
   def add(word: Int, kv: (A, B)): Leaf[A, B] = {
-    val (position, _) = this.bitset.getPosition(word)
+    val position = this.bitset.countOnesUpTo(word)
     Leaf(
       bitset=this.bitset.add(word),
       storedValues=this.storedValues.insertAt(position, kv),

@@ -18,7 +18,7 @@ package object Simple32BitSetContainer {
     def contains(number: Int): Boolean =
       ((this.word >>> number) & 1) === 1
 
-    private def countOnesUpTo(maxBinaryDigit: Int): Int = {
+    def countOnesUpTo(maxBinaryDigit: Int): Int = {
       var i = 0
       var ones = 0
       var number = this.word

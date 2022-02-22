@@ -50,13 +50,13 @@ class HAMTGet {
 
   @Benchmark
   def customHAMTGet(state: States.MyState, blackhole: Blackhole): Unit = {
-    val newMap = state.coolMap.get(state.key)
-    blackhole.consume(newMap)
+    val elem = state.coolMap.get(state.key)
+    blackhole.consume(elem)
   }
 
   @Benchmark
   def builtinHAMTGet(state: States.MyState, blackhole: Blackhole): Unit = {
-    val newMap = state.boringMap.get(state.key)
-    blackhole.consume(newMap)
+    val elem = state.boringMap.get(state.key)
+    blackhole.consume(elem)
   }
 }
