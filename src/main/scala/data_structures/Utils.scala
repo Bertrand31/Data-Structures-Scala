@@ -61,5 +61,5 @@ object Utils {
       }
     }
 
-  def log2: Double => Double = Math.log10(_) / Math.log10(2)
+  val log2: Double => Double = Math.log10(_) / Math.log10(2)
 }

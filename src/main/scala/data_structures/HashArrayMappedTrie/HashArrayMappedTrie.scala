@@ -4,16 +4,16 @@ import scala.collection.View
 import scala.collection.immutable.ArraySeq
 import scala.annotation.tailrec
 import scala.util.chaining.scalaUtilChainingOps
-import cats.{Eq, Functor, Monoid, Semigroup, Show}
+import cats.{Eq, Eval, Foldable, Functor, Monoid, Semigroup, Show}
 import cats.implicits._
-import data_structures.Utils.AugmentedArraySeq
+import data_structures.Utils._
 import Simple32BitSetContainer.Simple32BitSet
-import cats.Foldable
-import cats.Eval
 
 sealed trait HashArrayMappedTrie[+A, +B] {
 
   def view: View[(A, B)]
+
+  def keys: View[A]
 
   def values: View[B]
 }
@@ -24,6 +24,8 @@ private final case class Leaf[A, B](
 ) extends HashArrayMappedTrie[A, B] {
 
   def view: View[(A, B)] = storedValues.view
+
+  def keys: View[A] = view.map(_._1)
 
   def values: View[B] = view.map(_._2)
 
@@ -90,7 +92,7 @@ final case class Node[A, B](
 
   def +(item: (A, B)): Node[A, B] = descendAndAdd(item, getPath(item._1), this)
 
-  def `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
+  val `++`: IterableOnce[(A, B)] => Node[A, B] = _.iterator.foldLeft(this)(_ + _)
 
   private def descendAndRemove(key: A, steps: Iterator[Int], current: Node[A, B]): Node[A, B] = {
     val currentStep = steps.next()
@@ -114,7 +116,7 @@ final case class Node[A, B](
 
   def -(key: A): Node[A, B] = descendAndRemove(key, getPath(key), this)
 
-  def `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
+  val `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
   @tailrec
   private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
@@ -142,29 +144,27 @@ final case class Node[A, B](
       case (acc, Leaf(_, values))  => acc + values.size
     })
 
-  def view: View[(A, B)] =
-    this.children.view.flatMap({
-      case node: Node[A, B] => node.view
-      case Leaf(_, values)  => values.view
-    })
+  def view: View[(A, B)] = this.children.view.flatMap(_.view)
+
+  def keys: View[A] = this.children.view.flatMap(_.keys)
+
+  def values: View[B] = this.children.view.flatMap(_.values)
 
   def toArray: Array[(A, B)] = this.view.toArray
 
   def foreach(fn: ((A, B)) => Unit): Unit = this.view.foreach(fn)
 
-  def keys: View[A] = this.view.map(_._1)
+  type Predicate[T] = T => Boolean
 
-  def values: View[B] = this.view.map(_._2)
+  def forall(predicate: Predicate[(A, B)]): Boolean = this.view.forall(predicate)
 
-  def forall(predicate: ((A, B)) => Boolean): Boolean = this.view.forall(predicate)
+  def count(predicate: Predicate[(A, B)]): Int = this.view.count(predicate)
 
-  def count(predicate: ((A, B)) => Boolean): Int = this.view.count(predicate)
+  def countValues(predicate: Predicate[B]): Int = this.values.count(predicate)
 
-  def countValues(predicate: B => Boolean): Int = this.values.count(predicate)
+  def find(predicate: Predicate[(A, B)]): Option[(A, B)] = this.view.find(predicate)
 
-  def find(predicate: ((A, B)) => Boolean): Option[(A, B)] = this.view.find(predicate)
-
-  def findValue(predicate: B => Boolean): Option[B] = this.values.find(predicate)
+  def findValue(predicate: Predicate[B]): Option[B] = this.values.find(predicate)
 
   def isEmpty: Boolean = this.bitset.isEmpty
 
