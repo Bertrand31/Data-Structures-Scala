@@ -43,8 +43,23 @@ object Utils {
     }
 
     def removeAt(index: Int): ArraySeq[A] =
-      arr.take(index) ++ arr.drop(index + 1)
-  }
+      if (index >= arr.size) {
+        arr
+      } else {
+        val newArr = new Array[A](arr.size - 1)
+        var i = 0
+        while (i < index) {
+          newArr.update(i, arr(i))
+          i += 1
+        }
+        i = index + 1
+        while (i < (arr.size)) {
+          newArr.update(i - 1, arr(i))
+          i += 1
+        }
+        ArraySeq.unsafeWrapArray(newArr)
+      }
+    }
 
   def log2: Double => Double = Math.log10(_) / Math.log10(2)
 }
