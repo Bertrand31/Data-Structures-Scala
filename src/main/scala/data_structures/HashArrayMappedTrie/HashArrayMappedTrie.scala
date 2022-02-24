@@ -16,6 +16,8 @@ sealed trait HashArrayMappedTrie[+A, +B] {
   def keys: View[A]
 
   def values: View[B]
+
+  def size: Int
 }
 
 private final case class Leaf[A, B](
@@ -28,6 +30,8 @@ private final case class Leaf[A, B](
   def keys: View[A] = view.map(_._1)
 
   def values: View[B] = view.map(_._2)
+
+  def size: Int = storedValues.size
 
   def getValue(word: Int): Option[B] = {
     val (position, isSet) = this.bitset.getPosition(word)
@@ -119,36 +123,32 @@ final case class Node[A, B](
   val `--`: IterableOnce[A] => Node[A, B] = _.iterator.foldLeft(this)(_ - _)
 
   @tailrec
-  private def getPair(key: A, steps: Iterator[Int], current: Node[A, B]): Option[(A, B)] = {
+  private def getValue(key: A, steps: Iterator[Int], current: Node[A, B]): Option[B] = {
     val currentStep = steps.next()
     val (position, isSet) = current.bitset.getPosition(currentStep)
     if (isSet)
       current.children(position) match {
-        case leaf: Leaf[A, B] => leaf.getValue(currentStep).map((key, _))
-        case node: Node[A, B] => getPair(key, steps, node)
+        case leaf: Leaf[A, B] => leaf.getValue(currentStep)
+        case node: Node[A, B] => getValue(key, steps, node)
       }
     else None
   }
 
   def get(key: A): Option[B] =
-    getPair(key, getPath(key), this).map(_._2)
+    getValue(key, getPath(key), this)
 
   def getOrElse(key: A, default: => B): B =
     get(key).getOrElse(default)
 
   def has(key: A): Boolean = get(key).isDefined
 
-  def size: Int =
-    this.children.foldLeft(0)({
-      case (acc, node: Node[A, B]) => acc + node.size
-      case (acc, Leaf(_, values))  => acc + values.size
-    })
-
   def view: View[(A, B)] = this.children.view.flatMap(_.view)
 
   def keys: View[A] = this.children.view.flatMap(_.keys)
 
   def values: View[B] = this.children.view.flatMap(_.values)
+
+  def size: Int = this.children.foldMap(_.size)
 
   def toArray: Array[(A, B)] = this.view.toArray
 
@@ -178,7 +178,7 @@ object Node {
   private val StepBits = 5
   // A number whose binary representation is `StepBits` 1s, to be used as a complement
   private val StepComplement = math.pow(2, StepBits).toInt - 1
-  private val TrieDepth = math.ceil(Int.MaxValue.toBinaryString.size / StepBits.toDouble).toInt
+  private val TrieDepth = math.ceil((Int.MaxValue.toBinaryString.size - 1) / StepBits.toDouble).toInt
 
   def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)

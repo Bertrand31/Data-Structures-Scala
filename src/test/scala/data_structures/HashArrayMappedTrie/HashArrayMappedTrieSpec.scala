@@ -58,7 +58,7 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
   it should "remove the pairs corresponding to the given keys" in {
 
-    val populated = HashArrayMappedTrie[Int, String]() ++ Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
+    val populated = HashArrayMappedTrie[Int, String]() + (3 -> "foo") + (4 -> "bar") + (5 -> "baz")
     val empty = populated -- Seq(3, 4, 5)
     assert(empty.isEmpty)
   }
@@ -76,7 +76,7 @@ class HashArrayMappedTrieSpec extends AnyFlatSpec {
 
   it should "return the number of inserted tuples" in {
 
-    val populated = HashArrayMappedTrie[Int, String]() ++ Seq((3 -> "foo"), (4 -> "bar"), (5 -> "baz"))
+    val populated = HashArrayMappedTrie[Int, String]() + (3 -> "foo") + (4 -> "bar") + (5 -> "baz")
     assert(populated.size === 3)
   }
 
