@@ -178,7 +178,7 @@ object Node {
   private val StepBits = 5
   // A number whose binary representation is `StepBits` 1s, to be used as a complement
   private val StepComplement = math.pow(2, StepBits).toInt - 1
-  private val TrieDepth = math.ceil((Int.MaxValue.toBinaryString.size - 1) / StepBits.toDouble).toInt
+  private val TrieDepth = math.ceil(Int.MaxValue.toBinaryString.size / StepBits.toDouble).toInt
 
   def makePathFromHash(hash: Int): Iterator[Int] =
     (0 until TrieDepth)
