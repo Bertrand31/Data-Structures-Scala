@@ -59,4 +59,10 @@ class HAMTGet {
     val elem = state.boringMap.get(state.key)
     blackhole.consume(elem)
   }
+
+  @Benchmark
+  def size(state: States.MyState, blackhole: Blackhole): Unit = {
+    val size = state.coolMap.size
+    blackhole.consume(size)
+  }
 }

@@ -24,7 +24,7 @@ case class HyperLogLog(m: Int, M: Int, counters: Array[Int]) {
       case 16 => 0.673
       case 32 => 0.697
       case 64 => 0.709
-      case M  => 0.7213D / (1D + (1.079D / M.toDouble))
+      case _  => 0.7213D / (1D + (1.079D / M.toDouble))
     }
 
   def +[A](item: A): HyperLogLog = {

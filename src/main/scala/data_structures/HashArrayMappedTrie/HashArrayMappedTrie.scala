@@ -22,7 +22,7 @@ sealed trait HashArrayMappedTrie[+A, +B] {
 
 private final case class Leaf[A, B](
   private val bitset: Simple32BitSet = Simple32BitSet.empty,
-  private val storedValues: ArraySeq[(A, B)] = ArraySeq.empty,
+  val storedValues: ArraySeq[(A, B)] = ArraySeq.empty,
 ) extends HashArrayMappedTrie[A, B] {
 
   def view: View[(A, B)] = storedValues.view
@@ -31,7 +31,7 @@ private final case class Leaf[A, B](
 
   def values: View[B] = view.map(_._2)
 
-  def size: Int = storedValues.size
+  def size: Int = this.storedValues.size
 
   def getValue(word: Int): Option[B] = {
     val (position, isSet) = this.bitset.getPosition(word)
@@ -139,6 +139,12 @@ final case class Node[A, B](
 
   def getOrElse(key: A, default: => B): B =
     get(key).getOrElse(default)
+
+  def foldLeft[C](b: C)(f: (C, (A, B)) => C): C =
+    this.children.foldLeft(b)({
+      case (acc, node: Node[A, B]) => node.foldLeft(acc)(f)
+      case (acc, leaf: Leaf[A, B]) => leaf.storedValues.foldLeft(acc)(f)
+    })
 
   def has(key: A): Boolean = get(key).isDefined
 
